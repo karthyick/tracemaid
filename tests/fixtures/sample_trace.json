@@ -1,0 +1,200 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "api-gateway"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "opentelemetry.instrumentation.flask"
+          },
+          "spans": [
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "6e0c63257de34c92",
+              "parentSpanId": "",
+              "name": "HTTP GET /api/orders",
+              "startTimeUnixNano": "1703980800000000000",
+              "endTimeUnixNano": "1703980800850000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "7f1d74368ef45da3",
+              "parentSpanId": "6e0c63257de34c92",
+              "name": "validate-token",
+              "startTimeUnixNano": "1703980800010000000",
+              "endTimeUnixNano": "1703980800030000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "8g2e85479fg56eb4",
+              "parentSpanId": "6e0c63257de34c92",
+              "name": "route-request",
+              "startTimeUnixNano": "1703980800035000000",
+              "endTimeUnixNano": "1703980800045000000",
+              "status": {
+                "code": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "order-service"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "opentelemetry.instrumentation.grpc"
+          },
+          "spans": [
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "9h3f96580gh67fc5",
+              "parentSpanId": "8g2e85479fg56eb4",
+              "name": "GetOrders",
+              "startTimeUnixNano": "1703980800050000000",
+              "endTimeUnixNano": "1703980800780000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "ah4g07691hi78gd6",
+              "parentSpanId": "9h3f96580gh67fc5",
+              "name": "authenticate-user",
+              "startTimeUnixNano": "1703980800055000000",
+              "endTimeUnixNano": "1703980800085000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "bi5h18702ij89he7",
+              "parentSpanId": "9h3f96580gh67fc5",
+              "name": "fetch-user-orders",
+              "startTimeUnixNano": "1703980800090000000",
+              "endTimeUnixNano": "1703980800650000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "cj6i29813jk90if8",
+              "parentSpanId": "9h3f96580gh67fc5",
+              "name": "enrich-order-data",
+              "startTimeUnixNano": "1703980800655000000",
+              "endTimeUnixNano": "1703980800775000000",
+              "status": {
+                "code": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "database-service"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "opentelemetry.instrumentation.sqlalchemy"
+          },
+          "spans": [
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "dk7j30924kl01jg9",
+              "parentSpanId": "bi5h18702ij89he7",
+              "name": "SELECT orders",
+              "startTimeUnixNano": "1703980800095000000",
+              "endTimeUnixNano": "1703980800300000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "el8k41035lm12kh0",
+              "parentSpanId": "bi5h18702ij89he7",
+              "name": "SELECT order_items",
+              "startTimeUnixNano": "1703980800305000000",
+              "endTimeUnixNano": "1703980800580000000",
+              "status": {
+                "code": 2,
+                "message": "Database connection timeout"
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "fm9l52146mn23li1",
+              "parentSpanId": "bi5h18702ij89he7",
+              "name": "RETRY SELECT order_items",
+              "startTimeUnixNano": "1703980800585000000",
+              "endTimeUnixNano": "1703980800645000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "gn0m63257no34mj2",
+              "parentSpanId": "cj6i29813jk90if8",
+              "name": "SELECT product_details",
+              "startTimeUnixNano": "1703980800660000000",
+              "endTimeUnixNano": "1703980800720000000",
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "d4cda95b652f4a1592b449d5929fda1b",
+              "spanId": "ho1n74368op45nk3",
+              "parentSpanId": "cj6i29813jk90if8",
+              "name": "SELECT shipping_info",
+              "startTimeUnixNano": "1703980800725000000",
+              "endTimeUnixNano": "1703980800770000000",
+              "status": {
+                "code": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
