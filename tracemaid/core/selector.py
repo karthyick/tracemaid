@@ -88,8 +88,35 @@ class SpanSelector:
     # Default number of clusters when not specified
     default_n_clusters: int = 5
 
-    def __init__(self) -> None:
-        """Initialize the span selector."""
+    # Importance weights for sorting spans
+    # Feature indices: [0]=duration, [1]=depth, [2]=children, [3]=error, [4]=root, [5]=start_time
+    importance_weights: np.ndarray = np.array([
+        50.0,   # duration_normalized - slow spans indicate performance issues
+        5.0,    # depth_normalized - deep spans show call chain depth
+        10.0,   # child_count - orchestrators coordinate multiple operations
+        1000.0, # is_error - CRITICAL: errors must always be visible
+        100.0,  # is_root - entry points are important for understanding flow
+        0.0,    # relative_start_time - not used for importance scoring
+    ])
+
+    def __init__(
+        self,
+        min_points_for_hull: Optional[int] = None,
+        default_n_clusters: Optional[int] = None,
+    ) -> None:
+        """Initialize the span selector.
+
+        Args:
+            min_points_for_hull: Minimum points needed for ConvexHull.
+                Defaults to 7 (required for 6D simplex).
+            default_n_clusters: Default number of clusters for K-Means.
+                Defaults to 5.
+        """
+        if min_points_for_hull is not None:
+            self.min_points_for_hull = min_points_for_hull
+        if default_n_clusters is not None:
+            self.default_n_clusters = default_n_clusters
+
         self._last_features: Optional[np.ndarray] = None
         self._last_hull_indices: Optional[List[int]] = None
         self._last_cluster_indices: Optional[List[int]] = None
@@ -171,6 +198,47 @@ class SpanSelector:
             extreme_indices.add(max_idx)
 
         return list(extreme_indices)
+
+    def _importance_score(self, features: np.ndarray, idx: int) -> float:
+        """Calculate importance score for a span based on its features.
+
+        The importance score determines the priority of a span when
+        selecting which spans to include in the visualization. Higher
+        scores indicate more important spans.
+
+        Importance is calculated as a weighted sum of features:
+        - is_error (weight=1000): Errors are critical and must be visible
+        - is_root (weight=100): Entry points show request flow
+        - duration (weight=50): Slow spans indicate performance issues
+        - child_count (weight=10): Orchestrators coordinate operations
+        - depth (weight=5): Deep spans show call chain depth
+
+        Args:
+            features: numpy array of shape (N, 6) containing all feature vectors
+            idx: Index of the span to score
+
+        Returns:
+            Importance score (higher = more important)
+        """
+        return float(np.dot(features[idx], self.importance_weights))
+
+    def _sort_by_importance(
+        self, indices: List[int], features: np.ndarray
+    ) -> List[int]:
+        """Sort span indices by their importance scores (descending).
+
+        Args:
+            indices: List of span indices to sort
+            features: numpy array of shape (N, 6) containing feature vectors
+
+        Returns:
+            List of indices sorted by importance (most important first)
+        """
+        return sorted(
+            indices,
+            key=lambda idx: self._importance_score(features, idx),
+            reverse=True
+        )
 
     def select_cluster_centers(
         self, features: np.ndarray, n_clusters: int = 5
@@ -262,8 +330,9 @@ class SpanSelector:
         spans. The selection is deduplicated and limited to max_spans.
 
         Priority Order:
-        1. ConvexHull boundary points (outliers/extremes)
-        2. K-Means cluster centers (representatives)
+        1. ConvexHull boundary points, sorted by importance score
+           (errors first, then roots, then slow spans)
+        2. K-Means cluster centers, sorted by importance score
 
         Args:
             features: numpy array of shape (N, 6) containing feature vectors
@@ -271,7 +340,7 @@ class SpanSelector:
 
         Returns:
             List of unique indices, at most max_spans elements.
-            Hull points are prioritized, then cluster centers fill remaining.
+            Hull points are prioritized by importance, then cluster centers.
 
         Example:
             >>> features = extractor.extract(trace)
@@ -291,20 +360,26 @@ class SpanSelector:
         # Get hull points first (outliers/extremes)
         hull_indices = self.select_hull_points(features)
 
+        # Sort hull points by importance (errors first, then roots, then slow)
+        hull_indices = self._sort_by_importance(hull_indices, features)
+
         # Determine how many cluster representatives we need
         # Use at least as many clusters as remaining slots
         n_clusters = max(self.default_n_clusters, max_spans - len(hull_indices))
         cluster_indices = self.select_cluster_centers(features, n_clusters=n_clusters)
 
-        # Combine: hull points first, then cluster centers
+        # Sort cluster centers by importance as well
+        cluster_indices = self._sort_by_importance(cluster_indices, features)
+
+        # Combine: hull points first (sorted by importance), then cluster centers
         combined: List[int] = []
         seen: Set[int] = set()
 
-        # Add hull points first (prioritized)
+        # Add hull points first (sorted by importance)
         for idx in hull_indices:
             if idx not in seen:
                 seen.add(idx)
-                combined.append(idx)
+                combined.append(int(idx))
                 if len(combined) >= max_spans:
                     return combined
 
@@ -312,7 +387,7 @@ class SpanSelector:
         for idx in cluster_indices:
             if idx not in seen:
                 seen.add(idx)
-                combined.append(idx)
+                combined.append(int(idx))
                 if len(combined) >= max_spans:
                     return combined
 

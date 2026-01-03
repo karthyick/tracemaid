@@ -1,20 +1,25 @@
 """Services package for FastAPI demo application.
 
 Contains business logic services for user and order operations.
-These services demonstrate tracemaid integration for trace data generation
-and analysis.
+These services use standard OpenTelemetry tracing which is automatically
+exported as Mermaid diagrams by TracemaidExporter.
 
 Classes:
-    UserService: Service for user CRUD operations with trace generation
-    OrderService: Service for order operations with various log levels
+    UserService: Service for user CRUD operations with automatic tracing
+    OrderService: Service for order operations with automatic tracing
 
 Example:
+    >>> from tracemaid.integrations import setup_tracing
+    >>> setup_tracing(service_name="demo-api", output_dir="./traces")
+    >>>
     >>> from examples.fastapi_demo.services import UserService, OrderService
     >>> user_service = UserService()
     >>> order_service = OrderService()
+    >>>
+    >>> # All operations automatically generate Mermaid diagrams!
+    >>> user = user_service.create_user("john", "john@example.com")
 """
 
-from examples.fastapi_demo.services.tracing import SpanData
 from examples.fastapi_demo.services.user_service import UserService, User
 from examples.fastapi_demo.services.order_service import (
     OrderService,
@@ -23,21 +28,15 @@ from examples.fastapi_demo.services.order_service import (
     OrderStatus,
     InsufficientInventoryError,
     PaymentFailedError,
-    OrderProcessingError,
 )
 
 __all__ = [
-    # Shared tracing types
-    "SpanData",
-    # User service exports
     "UserService",
     "User",
-    # Order service exports
     "OrderService",
     "Order",
     "OrderItem",
     "OrderStatus",
     "InsufficientInventoryError",
     "PaymentFailedError",
-    "OrderProcessingError",
 ]

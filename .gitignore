@@ -92,3 +92,7 @@ dmypy.json
 
 # Ruff
 .ruff_cache/
+
+# Tracemaid output
+traces/
+*.mmd

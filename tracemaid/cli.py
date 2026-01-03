@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 from typing import List
 
+from tracemaid import __version__
 from tracemaid.core.parser import OTelParser, Span, Trace
 from tracemaid.core.selector import SpanSelector
 from tracemaid.core.mermaid import MermaidGenerator
@@ -90,7 +91,7 @@ def parse_args(args: List[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 0.1.0",
+        version=f"%(prog)s {__version__}",
     )
 
     return parser.parse_args(args)

@@ -204,6 +204,7 @@ class TestDirectoryStructureCompleteness:
         expected_structure = {
             "examples/fastapi_demo/__init__.py",
             "examples/fastapi_demo/requirements.txt",
+            "examples/fastapi_demo/main.py",
             "examples/fastapi_demo/routes/__init__.py",
             "examples/fastapi_demo/services/__init__.py",
         }
@@ -228,6 +229,9 @@ class TestDirectoryStructureCompleteness:
         expected_files = {
             "__init__.py",
             "requirements.txt",
+            "main.py",  # Main FastAPI application
+            "run_demo.py",  # Demo runner script
+            "test_endpoints.py",  # Comprehensive endpoint tests
         }
         expected_dirs = {"routes", "services", "__pycache__"}
 
@@ -240,6 +244,43 @@ class TestDirectoryStructureCompleteness:
                 assert item.name in expected_dirs, (
                     f"Unexpected directory found: {item.name}"
                 )
+
+
+class TestMainApplication:
+    """Test suite for validating main.py application file."""
+
+    def test_main_py_exists(self) -> None:
+        """Verify main.py exists in fastapi_demo directory."""
+        main_file = FASTAPI_DEMO_DIR / "main.py"
+        assert main_file.exists(), f"main.py not found at {main_file}"
+        assert main_file.is_file(), f"{main_file} exists but is not a file"
+
+    def test_main_py_has_app(self) -> None:
+        """Verify main.py defines a FastAPI app."""
+        main_file = FASTAPI_DEMO_DIR / "main.py"
+        content = main_file.read_text()
+        assert "app = FastAPI" in content or "app: FastAPI" in content, (
+            "main.py should define a FastAPI app"
+        )
+
+    def test_main_py_has_middleware(self) -> None:
+        """Verify main.py configures middleware."""
+        main_file = FASTAPI_DEMO_DIR / "main.py"
+        content = main_file.read_text()
+        assert "add_middleware" in content, (
+            "main.py should configure middleware"
+        )
+
+    def test_main_py_imports_routers(self) -> None:
+        """Verify main.py imports routers."""
+        main_file = FASTAPI_DEMO_DIR / "main.py"
+        content = main_file.read_text()
+        assert "user_router" in content, (
+            "main.py should import user_router"
+        )
+        assert "order_router" in content, (
+            "main.py should import order_router"
+        )
 
 
 class TestServicesSubpackage:
@@ -255,13 +296,12 @@ class TestServicesSubpackage:
         order_service = FASTAPI_DEMO_DIR / "services" / "order_service.py"
         assert order_service.exists(), f"order_service.py not found at {order_service}"
 
-    def test_services_has_tracing_module(self) -> None:
-        """Verify tracing.py exists in services directory."""
-        tracing = FASTAPI_DEMO_DIR / "services" / "tracing.py"
-        assert tracing.exists(), f"tracing.py not found at {tracing}"
-
     def test_services_imports_work(self) -> None:
-        """Verify services can be imported successfully."""
+        """Verify services can be imported successfully.
+
+        Note: Services now use standard OpenTelemetry tracing. The old tracing.py
+        module and SpanData class have been removed in favor of TracemaidExporter.
+        """
         import sys
         examples_path = str(PROJECT_ROOT / "examples")
         if examples_path not in sys.path:
@@ -270,7 +310,6 @@ class TestServicesSubpackage:
             from fastapi_demo.services import (
                 UserService,
                 User,
-                SpanData,
                 OrderService,
                 Order,
                 OrderItem,
@@ -279,7 +318,6 @@ class TestServicesSubpackage:
             # Verify classes are importable
             assert UserService is not None
             assert User is not None
-            assert SpanData is not None
             assert OrderService is not None
             assert Order is not None
             assert OrderItem is not None

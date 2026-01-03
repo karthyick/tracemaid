@@ -1,7 +1,8 @@
 """Routes package for FastAPI demo application.
 
 Contains API route definitions for user and order endpoints with
-tracemaid integration for request tracing and correlation ID propagation.
+automatic OpenTelemetry tracing. Traces are automatically exported
+as Mermaid diagrams by TracemaidExporter.
 
 Routers:
     user_router: APIRouter for user CRUD operations
