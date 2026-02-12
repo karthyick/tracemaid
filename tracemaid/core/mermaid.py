@@ -27,6 +27,7 @@ class MermaidStyle:
         slow_threshold_percentile: Percentile above which spans are considered slow
         node_shape: Shape for regular nodes (default: rectangle with rounded corners)
     """
+
     error_color: str = "#ff6b6b"
     error_stroke: str = "#c92a2a"
     slow_color: str = "#ffa94d"
@@ -64,20 +65,20 @@ class MermaidGenerator:
 
     # Characters that need escaping in Mermaid labels
     SPECIAL_CHARS = {
-        '"': '#quot;',
-        "'": '#apos;',
-        '<': '#lt;',
-        '>': '#gt;',
-        '&': '#amp;',
-        '[': '#91;',
-        ']': '#93;',
-        '{': '#123;',
-        '}': '#125;',
-        '(': '#40;',
-        ')': '#41;',
-        '|': '#124;',
-        '\\': '#92;',
-        '/': '#47;',
+        '"': "#quot;",
+        "'": "#apos;",
+        "<": "#lt;",
+        ">": "#gt;",
+        "&": "#amp;",
+        "[": "#91;",
+        "]": "#93;",
+        "{": "#123;",
+        "}": "#125;",
+        "(": "#40;",
+        ")": "#41;",
+        "|": "#124;",
+        "\\": "#92;",
+        "/": "#47;",
     }
 
     def __init__(self, style: Optional[MermaidStyle] = None) -> None:
@@ -96,7 +97,7 @@ class MermaidGenerator:
         spans: List[Span],
         trace: Trace,
         enable_styling: bool = True,
-        title: Optional[str] = None
+        title: Optional[str] = None,
     ) -> str:
         """Generate a Mermaid flowchart diagram from spans.
 
@@ -324,7 +325,7 @@ class MermaidGenerator:
             Sanitized node ID safe for Mermaid
         """
         # Replace any non-alphanumeric characters with underscore
-        sanitized = re.sub(r'[^a-zA-Z0-9]', '_', span_id)
+        sanitized = re.sub(r"[^a-zA-Z0-9]", "_", span_id)
 
         # Ensure it doesn't start with a number (add prefix if needed)
         if sanitized and sanitized[0].isdigit():
@@ -341,7 +342,7 @@ class MermaidGenerator:
         spans: List[Span],
         trace: Trace,
         include_duration: bool = True,
-        include_depth: bool = False
+        include_depth: bool = False,
     ) -> str:
         """Generate a Mermaid diagram with additional metadata in labels.
 
@@ -387,7 +388,7 @@ class MermaidGenerator:
             escaped_label = self._escape_label(label)
 
             lines.append(
-                f'    {node_id}{self.style.node_shape_start}'
+                f"    {node_id}{self.style.node_shape_start}"
                 f'"{escaped_label}"{self.style.node_shape_end}'
             )
 

@@ -87,7 +87,7 @@ with tracer.start_as_current_span("my-operation"):
 Parse existing trace files and generate diagrams:
 
 ```python
-from tracemaid import OTelParser, SpanSelector, MermaidGenerator
+from tracemaid import OTelParser, SpanSelector, MermaidGenerator, PlantUMLGenerator
 
 # Parse a trace file
 parser = OTelParser()
@@ -99,9 +99,14 @@ selector = SpanSelector(min_points_for_hull=7)
 important_spans = selector.select_from_trace(trace, max_spans=10)
 
 # Generate Mermaid diagram
-generator = MermaidGenerator()
-diagram = generator.generate(important_spans, trace)
-print(diagram)
+mermaid_generator = MermaidGenerator()
+mermaid_diagram = mermaid_generator.generate(important_spans, trace)
+print(mermaid_diagram)
+
+# Generate PlantUML diagram
+plantuml_generator = PlantUMLGenerator()
+plantuml_diagram = plantuml_generator.generate(important_spans, trace)
+print(plantuml_diagram)
 ```
 
 ### CLI Usage
@@ -118,6 +123,9 @@ tracemaid trace.json --metadata
 
 # JSON output format
 tracemaid trace.json --format json
+
+# PlantUML output format
+tracemaid trace.json --format plantuml -o diagram.puml
 
 # Disable styling
 tracemaid trace.json --no-style
@@ -164,7 +172,7 @@ instrument_redis(client=my_redis)        # Optional: pass specific client
   - Color-coded nodes (red for errors, orange for slow spans)
   - Parent-child relationships preserved
   - Dotted lines for filtered intermediate spans
-- **Multiple Output Formats**: Mermaid diagrams or JSON
+- **Multiple Output Formats**: Mermaid diagrams, PlantUML diagrams, or JSON
 
 ## Example Output
 

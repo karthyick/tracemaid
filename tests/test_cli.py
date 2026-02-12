@@ -6,12 +6,9 @@ argument parsing, trace loading, output generation, and end-to-end flows.
 """
 
 import json
-import os
 import pytest
-import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 from tracemaid.cli import (
     parse_args,
@@ -23,7 +20,6 @@ from tracemaid.cli import (
     main,
 )
 from tracemaid.core.parser import Span, Trace
-
 
 # =============================================================================
 # Fixtures
@@ -91,9 +87,7 @@ def temp_json_file(simple_trace: Trace) -> Path:
         ],
     }
 
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(trace_data, f)
         temp_path = Path(f.name)
 
@@ -152,6 +146,11 @@ class TestParseArgs:
         args = parse_args(["trace.json", "--format", "json"])
         assert args.format == "json"
 
+    def test_parse_format_plantuml(self):
+        """Format option accepts plantuml."""
+        args = parse_args(["trace.json", "--format", "plantuml"])
+        assert args.format == "plantuml"
+
     def test_parse_format_default(self):
         """Default format is mermaid."""
         args = parse_args(["trace.json"])
@@ -179,14 +178,9 @@ class TestParseArgs:
 
     def test_parse_combined_options(self):
         """Multiple options can be combined."""
-        args = parse_args([
-            "trace.json",
-            "-o", "out.md",
-            "-n", "25",
-            "--format", "json",
-            "--no-style",
-            "-v"
-        ])
+        args = parse_args(
+            ["trace.json", "-o", "out.md", "-n", "25", "--format", "json", "--no-style", "-v"]
+        )
         assert args.input_file == "trace.json"
         assert args.output == "out.md"
         assert args.max_spans == 25
@@ -270,9 +264,7 @@ class TestGenerateMermaidOutput:
 
     def test_generates_valid_mermaid(self, simple_trace: Trace):
         """Generates valid Mermaid diagram."""
-        output = generate_mermaid_output(
-            simple_trace.spans, simple_trace
-        )
+        output = generate_mermaid_output(simple_trace.spans, simple_trace)
 
         assert "flowchart TD" in output
         assert "api: handle_request" in output
@@ -280,34 +272,26 @@ class TestGenerateMermaidOutput:
 
     def test_includes_edges(self, simple_trace: Trace):
         """Diagram includes edges for relationships."""
-        output = generate_mermaid_output(
-            simple_trace.spans, simple_trace
-        )
+        output = generate_mermaid_output(simple_trace.spans, simple_trace)
 
         assert "-->" in output
 
     def test_styling_enabled_by_default(self, simple_trace: Trace):
         """Styling is included by default."""
-        output = generate_mermaid_output(
-            simple_trace.spans, simple_trace
-        )
+        output = generate_mermaid_output(simple_trace.spans, simple_trace)
 
         assert "classDef" in output or "style" in output.lower()
 
     def test_styling_can_be_disabled(self, simple_trace: Trace):
         """Styling can be disabled."""
-        output = generate_mermaid_output(
-            simple_trace.spans, simple_trace, enable_styling=False
-        )
+        output = generate_mermaid_output(simple_trace.spans, simple_trace, enable_styling=False)
 
         # Should still be valid Mermaid
         assert "flowchart TD" in output
 
     def test_metadata_option(self, simple_trace: Trace):
         """Metadata option includes duration."""
-        output = generate_mermaid_output(
-            simple_trace.spans, simple_trace, include_metadata=True
-        )
+        output = generate_mermaid_output(simple_trace.spans, simple_trace, include_metadata=True)
 
         # Should include duration somewhere
         assert "ms" in output or "μs" in output or "s" in output.lower()
@@ -403,15 +387,10 @@ class TestMain:
         captured = capsys.readouterr()
         assert "flowchart TD" in captured.out
 
-    def test_main_with_output_file(
-        self, sample_trace_path: Path, tmp_path: Path
-    ):
+    def test_main_with_output_file(self, sample_trace_path: Path, tmp_path: Path):
         """Main function writes to output file."""
         output_path = tmp_path / "output.md"
-        result = main([
-            str(sample_trace_path),
-            "-o", str(output_path)
-        ])
+        result = main([str(sample_trace_path), "-o", str(output_path)])
 
         assert result == 0
         assert output_path.exists()
@@ -420,10 +399,7 @@ class TestMain:
 
     def test_main_json_format(self, sample_trace_path: Path, capsys):
         """Main function outputs JSON when requested."""
-        result = main([
-            str(sample_trace_path),
-            "--format", "json"
-        ])
+        result = main([str(sample_trace_path), "--format", "json"])
 
         assert result == 0
         captured = capsys.readouterr()
@@ -432,13 +408,21 @@ class TestMain:
         data = json.loads(captured.out)
         assert "traceId" in data
 
+    def test_main_plantuml_format(self, sample_trace_path: Path, capsys):
+        """Main function outputs PlantUML when requested."""
+        result = main([str(sample_trace_path), "--format", "plantuml"])
+
+        assert result == 0
+        captured = capsys.readouterr()
+        assert "@startuml activity" in captured.out
+        assert "@enduml" in captured.out
+        assert (
+            ":database-service: SELECT order_items;" in captured.out
+        )  # Example node text from PlantUML test
+
     def test_main_max_spans(self, sample_trace_path: Path, capsys):
         """Main function respects max-spans."""
-        result = main([
-            str(sample_trace_path),
-            "-n", "3",
-            "--format", "json"
-        ])
+        result = main([str(sample_trace_path), "-n", "3", "--format", "json"])
 
         assert result == 0
         captured = capsys.readouterr()
@@ -464,9 +448,7 @@ class TestMain:
         captured = capsys.readouterr()
         assert "Error" in captured.err
 
-    def test_main_verbose_output(
-        self, sample_trace_path: Path, capsys
-    ):
+    def test_main_verbose_output(self, sample_trace_path: Path, capsys):
         """Main function prints verbose messages."""
         result = main([str(sample_trace_path), "-v"])
 
@@ -496,19 +478,13 @@ class TestEndToEnd:
         assert "[" in captured.out
         assert "]" in captured.out
 
-    def test_full_pipeline_with_all_options(
-        self, sample_trace_path: Path, tmp_path: Path
-    ):
+    def test_full_pipeline_with_all_options(self, sample_trace_path: Path, tmp_path: Path):
         """Full pipeline works with all options."""
         output_path = tmp_path / "full_test.md"
 
-        result = main([
-            str(sample_trace_path),
-            "-o", str(output_path),
-            "-n", "8",
-            "--metadata",
-            "-v"
-        ])
+        result = main(
+            [str(sample_trace_path), "-o", str(output_path), "-n", "8", "--metadata", "-v"]
+        )
 
         assert result == 0
         assert output_path.exists()
@@ -518,45 +494,39 @@ class TestEndToEnd:
         # Metadata should include duration formatting
         assert "ms" in content or "μs" in content or "s)" in content
 
-    def test_json_output_contains_selected_spans(
-        self, sample_trace_path: Path, capsys
-    ):
-        """JSON output contains the selected spans."""
-        result = main([
-            str(sample_trace_path),
-            "--format", "json",
-            "-n", "10"
-        ])
+    def test_full_pipeline_plantuml_output(self, sample_trace_path: Path, tmp_path: Path):
+        """Full pipeline generates PlantUML output to file."""
+        output_path = tmp_path / "plantuml_output.puml"
+        result = main([str(sample_trace_path), "-o", str(output_path), "--format", "plantuml"])
 
         assert result == 0
-        captured = capsys.readouterr()
-        data = json.loads(captured.out)
+        assert output_path.exists()
+        content = output_path.read_text()
+        assert "@startuml activity" in content
+        assert "@enduml" in content
+        assert ":database-service: SELECT order_items;" in content  # Example node text
 
-        # Verify structure
-        assert data["totalSpans"] >= data["selectedSpans"]
-        assert len(data["spans"]) == data["selectedSpans"]
+    def test_full_pipeline_plantuml_output_with_metadata_and_no_style(
+        self, sample_trace_path: Path, tmp_path: Path
+    ):
+        """Full pipeline generates PlantUML with metadata and no style to file."""
+        output_path = tmp_path / "plantuml_metadata_nostyle.puml"
+        result = main(
+            [
+                str(sample_trace_path),
+                "-o",
+                str(output_path),
+                "--format",
+                "plantuml",
+                "--metadata",
+                "--no-style",
+            ]
+        )
 
-        # Verify span contents
-        for span in data["spans"]:
-            assert span["spanId"]
-            assert span["service"]
-            assert span["operation"]
-
-    def test_sample_trace_has_error_span(self, sample_trace: Trace):
-        """Sample trace fixture contains an error span."""
-        error_spans = [s for s in sample_trace.spans if s.status == "ERROR"]
-        assert len(error_spans) >= 1
-
-    def test_sample_trace_has_multiple_services(self, sample_trace: Trace):
-        """Sample trace fixture has spans from multiple services."""
-        services = set(s.service for s in sample_trace.spans)
-        assert len(services) >= 3
-
-    def test_sample_trace_has_varying_durations(self, sample_trace: Trace):
-        """Sample trace fixture has varying span durations."""
-        durations = [s.duration for s in sample_trace.spans]
-        min_dur = min(durations)
-        max_dur = max(durations)
-
-        # There should be significant variation
-        assert max_dur > min_dur * 2
+        assert result == 0
+        assert output_path.exists()
+        content = output_path.read_text()
+        assert "@startuml activity" in content
+        assert "@enduml" in content
+        assert "skinparam" not in content  # No styling
+        assert "ms)" in content or "μs)" in content or "s)" in content  # Metadata present

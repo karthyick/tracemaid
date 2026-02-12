@@ -9,17 +9,15 @@ This subpackage contains the main functionality:
 """
 
 from tracemaid.core.parser import Span, Trace, OTelParser
-from tracemaid.core.features import FeatureExtractor, FEATURE_NAMES
-from tracemaid.core.selector import SpanSelector
 from tracemaid.core.mermaid import MermaidGenerator, MermaidStyle
+from tracemaid.core.plantuml import PlantUMLGenerator, PlantUMLStyle
 
 __all__ = [
     "Span",
     "Trace",
     "OTelParser",
-    "FeatureExtractor",
-    "FEATURE_NAMES",
-    "SpanSelector",
     "MermaidGenerator",
     "MermaidStyle",
+    "PlantUMLGenerator",
+    "PlantUMLStyle",
 ]

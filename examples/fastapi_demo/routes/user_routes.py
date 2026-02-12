@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, EmailStr, Field
 
 from examples.fastapi_demo.services import UserService, User
@@ -171,7 +171,7 @@ async def get_user(user_id: str) -> UserResponse:
 
 
 @router.delete("/{user_id}", status_code=204)
-async def delete_user(user_id: str) -> None:
+async def delete_user(user_id: str) -> Response:
     """Delete a user by ID.
 
     Soft deletes and then removes a user. Traces are automatically
@@ -195,3 +195,4 @@ async def delete_user(user_id: str) -> None:
         )
 
     logger.info("User deleted successfully: %s", user_id)
+    return Response(status_code=204)

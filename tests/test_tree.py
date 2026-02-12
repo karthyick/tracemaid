@@ -22,7 +22,6 @@ from tracemaid.utils.tree import (
     calculate_subtree_duration,
 )
 
-
 # Fixtures for creating test span trees
 
 
@@ -174,32 +173,74 @@ def complex_tree() -> Span:
             └── b3
     """
     c1 = Span(
-        spanId="c1", parentSpanId="b1", service="svc-c",
-        operation="op-c1", duration=50, status="OK", depth=3, children=[]
+        spanId="c1",
+        parentSpanId="b1",
+        service="svc-c",
+        operation="op-c1",
+        duration=50,
+        status="OK",
+        depth=3,
+        children=[],
     )
     b1 = Span(
-        spanId="b1", parentSpanId="a1", service="svc-b",
-        operation="op-b1", duration=100, status="OK", depth=2, children=[c1]
+        spanId="b1",
+        parentSpanId="a1",
+        service="svc-b",
+        operation="op-b1",
+        duration=100,
+        status="OK",
+        depth=2,
+        children=[c1],
     )
     b2 = Span(
-        spanId="b2", parentSpanId="a1", service="svc-b",
-        operation="op-b2", duration=80, status="ERROR", depth=2, children=[]
+        spanId="b2",
+        parentSpanId="a1",
+        service="svc-b",
+        operation="op-b2",
+        duration=80,
+        status="ERROR",
+        depth=2,
+        children=[],
     )
     b3 = Span(
-        spanId="b3", parentSpanId="a2", service="svc-b",
-        operation="op-b3", duration=120, status="OK", depth=2, children=[]
+        spanId="b3",
+        parentSpanId="a2",
+        service="svc-b",
+        operation="op-b3",
+        duration=120,
+        status="OK",
+        depth=2,
+        children=[],
     )
     a1 = Span(
-        spanId="a1", parentSpanId="root", service="svc-a",
-        operation="op-a1", duration=300, status="OK", depth=1, children=[b1, b2]
+        spanId="a1",
+        parentSpanId="root",
+        service="svc-a",
+        operation="op-a1",
+        duration=300,
+        status="OK",
+        depth=1,
+        children=[b1, b2],
     )
     a2 = Span(
-        spanId="a2", parentSpanId="root", service="svc-a",
-        operation="op-a2", duration=200, status="OK", depth=1, children=[b3]
+        spanId="a2",
+        parentSpanId="root",
+        service="svc-a",
+        operation="op-a2",
+        duration=200,
+        status="OK",
+        depth=1,
+        children=[b3],
     )
     root = Span(
-        spanId="root", parentSpanId=None, service="svc-root",
-        operation="main", duration=1000, status="OK", depth=0, children=[a1, a2]
+        spanId="root",
+        parentSpanId=None,
+        service="svc-root",
+        operation="main",
+        duration=1000,
+        status="OK",
+        depth=0,
+        children=[a1, a2],
     )
     return root
 
@@ -716,11 +757,56 @@ class TestEdgeCases:
     def test_get_leaf_spans_deeply_nested(self) -> None:
         """Test get_leaf_spans works with deeply nested single-path tree."""
         # Create a chain: root -> a -> b -> c -> d (leaf)
-        d = Span(spanId="d", parentSpanId="c", service="s", operation="o", duration=10, status="OK", depth=4, children=[])
-        c = Span(spanId="c", parentSpanId="b", service="s", operation="o", duration=10, status="OK", depth=3, children=[d])
-        b = Span(spanId="b", parentSpanId="a", service="s", operation="o", duration=10, status="OK", depth=2, children=[c])
-        a = Span(spanId="a", parentSpanId="root", service="s", operation="o", duration=10, status="OK", depth=1, children=[b])
-        root = Span(spanId="root", parentSpanId=None, service="s", operation="o", duration=10, status="OK", depth=0, children=[a])
+        d = Span(
+            spanId="d",
+            parentSpanId="c",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=4,
+            children=[],
+        )
+        c = Span(
+            spanId="c",
+            parentSpanId="b",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=3,
+            children=[d],
+        )
+        b = Span(
+            spanId="b",
+            parentSpanId="a",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=2,
+            children=[c],
+        )
+        a = Span(
+            spanId="a",
+            parentSpanId="root",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=1,
+            children=[b],
+        )
+        root = Span(
+            spanId="root",
+            parentSpanId=None,
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=0,
+            children=[a],
+        )
 
         leaves = get_leaf_spans(root)
         assert len(leaves) == 1
@@ -728,11 +814,56 @@ class TestEdgeCases:
 
     def test_get_descendants_deeply_nested(self) -> None:
         """Test get_descendants counts all nodes in deeply nested tree."""
-        d = Span(spanId="d", parentSpanId="c", service="s", operation="o", duration=10, status="OK", depth=4, children=[])
-        c = Span(spanId="c", parentSpanId="b", service="s", operation="o", duration=10, status="OK", depth=3, children=[d])
-        b = Span(spanId="b", parentSpanId="a", service="s", operation="o", duration=10, status="OK", depth=2, children=[c])
-        a = Span(spanId="a", parentSpanId="root", service="s", operation="o", duration=10, status="OK", depth=1, children=[b])
-        root = Span(spanId="root", parentSpanId=None, service="s", operation="o", duration=10, status="OK", depth=0, children=[a])
+        d = Span(
+            spanId="d",
+            parentSpanId="c",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=4,
+            children=[],
+        )
+        c = Span(
+            spanId="c",
+            parentSpanId="b",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=3,
+            children=[d],
+        )
+        b = Span(
+            spanId="b",
+            parentSpanId="a",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=2,
+            children=[c],
+        )
+        a = Span(
+            spanId="a",
+            parentSpanId="root",
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=1,
+            children=[b],
+        )
+        root = Span(
+            spanId="root",
+            parentSpanId=None,
+            service="s",
+            operation="o",
+            duration=10,
+            status="OK",
+            depth=0,
+            children=[a],
+        )
 
         descendants = get_descendants(root)
         assert len(descendants) == 4

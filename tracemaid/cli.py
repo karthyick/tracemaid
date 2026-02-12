@@ -25,6 +25,8 @@ from tracemaid import __version__
 from tracemaid.core.parser import OTelParser, Span, Trace
 from tracemaid.core.selector import SpanSelector
 from tracemaid.core.mermaid import MermaidGenerator
+from tracemaid.core.plantuml import PlantUMLGenerator
+from tracemaid.core.advanced_filter import FilterCriterion, FilterOperator, apply_advanced_filter
 
 
 def parse_args(args: List[str] | None = None) -> argparse.Namespace:
@@ -49,14 +51,16 @@ def parse_args(args: List[str] | None = None) -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=str,
         default=None,
         help="Output file path (defaults to stdout)",
     )
 
     parser.add_argument(
-        "-n", "--max-spans",
+        "-n",
+        "--max-spans",
         type=int,
         default=10,
         help="Maximum number of spans to include in the diagram (default: 10)",
@@ -65,7 +69,7 @@ def parse_args(args: List[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--format",
         type=str,
-        choices=["mermaid", "json"],
+        choices=["mermaid", "json", "plantuml"],
         default="mermaid",
         help="Output format: mermaid diagram or json (default: mermaid)",
     )
@@ -82,8 +86,30 @@ def parse_args(args: List[str] | None = None) -> argparse.Namespace:
         help="Include duration and depth metadata in labels",
     )
 
+    # Advanced filtering arguments
     parser.add_argument(
-        "-v", "--verbose",
+        "--filter-attribute",
+        type=str,
+        action="append",
+        help="Attribute name to filter by. Can be specified multiple times for multiple criteria. E.g., --filter-attribute service --filter-operator eq --filter-value my-service",
+    )
+    parser.add_argument(
+        "--filter-operator",
+        type=str,
+        action="append",
+        choices=[op.value for op in FilterOperator],  # Use .value for actual string values
+        help=f"Comparison operator for filtering. Must be specified with --filter-attribute and --filter-value. Available: {[op.value for op in FilterOperator]}",
+    )
+    parser.add_argument(
+        "--filter-value",
+        type=str,
+        action="append",
+        help="Value to compare against for filtering. Can be specified multiple times.",
+    )
+
+    parser.add_argument(
+        "-v",
+        "--verbose",
         action="store_true",
         help="Enable verbose output",
     )
@@ -94,7 +120,28 @@ def parse_args(args: List[str] | None = None) -> argparse.Namespace:
         version=f"%(prog)s {__version__}",
     )
 
-    return parser.parse_args(args)
+    parsed_args = parser.parse_args(args)
+
+    # Validate advanced filtering arguments
+    filter_attrs = parsed_args.filter_attribute
+    filter_ops = parsed_args.filter_operator
+    filter_vals = parsed_args.filter_value
+
+    if (filter_attrs is not None) != (filter_ops is not None) or (filter_attrs is not None) != (
+        filter_vals is not None
+    ):
+        parser.error(
+            "If using advanced filtering, --filter-attribute, --filter-operator, "
+            "and --filter-value must all be provided an equal number of times."
+        )
+
+    if filter_attrs is not None and not (len(filter_attrs) == len(filter_ops) == len(filter_vals)):
+        parser.error(
+            "The number of --filter-attribute, --filter-operator, and --filter-value "
+            "arguments must be equal."
+        )
+
+    return parsed_args
 
 
 def load_trace(input_path: str) -> Trace:
@@ -159,6 +206,33 @@ def generate_mermaid_output(
     if include_metadata:
         return generator.generate_with_metadata(
             spans, trace, include_duration=True, include_depth=True
+        )
+    else:
+        return generator.generate(spans, trace, enable_styling=enable_styling)
+
+
+def generate_plantuml_output(
+    spans: List[Span],
+    trace: Trace,
+    enable_styling: bool = True,
+    include_metadata: bool = False,
+) -> str:
+    """Generate PlantUML diagram from selected spans.
+
+    Args:
+        spans: List of selected spans
+        trace: The complete trace for context
+        enable_styling: Whether to apply styling
+        include_metadata: Whether to include duration/depth in labels
+
+    Returns:
+        PlantUML diagram as a string
+    """
+    generator = PlantUMLGenerator()
+
+    if include_metadata:
+        return generator.generate_with_metadata(
+            spans, trace, include_duration=True, include_depth=True, enable_styling=enable_styling
         )
     else:
         return generator.generate(spans, trace, enable_styling=enable_styling)
@@ -235,6 +309,36 @@ def main(args: List[str] | None = None) -> int:
                 file=sys.stderr,
             )
 
+        # Apply advanced filtering if arguments are provided
+        initial_spans: List[Span] = trace.spans
+        if parsed_args.filter_attribute:
+            filter_criteria: List[FilterCriterion] = []
+            for i in range(len(parsed_args.filter_attribute)):
+                filter_criteria.append(
+                    FilterCriterion(
+                        attribute=parsed_args.filter_attribute[i],
+                        operator=FilterOperator(
+                            parsed_args.filter_operator[i]
+                        ),  # Ensure operator is FilterOperator enum
+                        value=parsed_args.filter_value[i],
+                    )
+                )
+
+            if parsed_args.verbose:
+                print(
+                    f"Applying advanced filter with {len(filter_criteria)} criteria",
+                    file=sys.stderr,
+                )
+
+            initial_spans = apply_advanced_filter(initial_spans, filter_criteria)
+            trace.spans = initial_spans  # Update trace spans for further processing
+
+            if parsed_args.verbose:
+                print(
+                    f"Advanced filtering resulted in {len(initial_spans)} spans",
+                    file=sys.stderr,
+                )
+
         # Select important spans
         selected_spans = select_important_spans(trace, parsed_args.max_spans)
 
@@ -247,7 +351,14 @@ def main(args: List[str] | None = None) -> int:
         # Generate output based on format
         if parsed_args.format == "json":
             output = generate_json_output(selected_spans, trace)
-        else:
+        elif parsed_args.format == "plantuml":
+            output = generate_plantuml_output(
+                selected_spans,
+                trace,
+                enable_styling=not parsed_args.no_style,
+                include_metadata=parsed_args.metadata,
+            )
+        else:  # Default to mermaid
             output = generate_mermaid_output(
                 selected_spans,
                 trace,

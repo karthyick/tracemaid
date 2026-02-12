@@ -31,12 +31,16 @@ class Span:
         depth: Nesting depth in the span tree (0 for root)
         children: List of child spans
     """
+
     spanId: str
     parentSpanId: Optional[str]
     service: str
     operation: str
     duration: int
     status: str
+    attributes: Dict[str, Any] = field(
+        default_factory=dict
+    )  # Add attributes for OpenTelemetry span data
     depth: int = 0
     children: List[Span] = field(default_factory=list)
 
@@ -59,6 +63,7 @@ class Trace:
         spans: List of all spans in the trace
         total_duration: Total duration of the trace in microseconds
     """
+
     traceId: str
     spans: List[Span]
     total_duration: int
@@ -172,11 +177,7 @@ class OTelParser:
         # Calculate total duration
         total_duration = self._calculate_total_duration(spans)
 
-        return Trace(
-            traceId=trace_id,
-            spans=spans,
-            total_duration=total_duration
-        )
+        return Trace(traceId=trace_id, spans=spans, total_duration=total_duration)
 
     def _extract_from_resource_spans(
         self, resource_spans: List[Dict[str, Any]]
@@ -314,18 +315,13 @@ class OTelParser:
             Span object
         """
         # Get span ID (handle different key formats)
-        span_id = (
-            raw_span.get("spanId") or
-            raw_span.get("spanID") or
-            raw_span.get("span_id") or
-            ""
-        )
+        span_id = raw_span.get("spanId") or raw_span.get("spanID") or raw_span.get("span_id") or ""
 
         # Get parent span ID
         parent_span_id = (
-            raw_span.get("parentSpanId") or
-            raw_span.get("parentSpanID") or
-            raw_span.get("parent_span_id")
+            raw_span.get("parentSpanId")
+            or raw_span.get("parentSpanID")
+            or raw_span.get("parent_span_id")
         )
         # Treat empty string as None
         if parent_span_id == "":
@@ -336,10 +332,10 @@ class OTelParser:
 
         # Get operation name
         operation = (
-            raw_span.get("name") or
-            raw_span.get("operationName") or
-            raw_span.get("operation_name") or
-            "unknown"
+            raw_span.get("name")
+            or raw_span.get("operationName")
+            or raw_span.get("operation_name")
+            or "unknown"
         )
 
         # Calculate duration
@@ -355,8 +351,9 @@ class OTelParser:
             operation=operation,
             duration=duration,
             status=status,
+            attributes=raw_span.get("attributes", {}),  # Populate the new attributes field
             depth=0,  # Will be calculated in _build_span_tree
-            children=[]
+            children=[],
         )
 
     def _calculate_span_duration(self, raw_span: Dict[str, Any]) -> int:
@@ -382,16 +379,16 @@ class OTelParser:
 
         # Calculate from start and end times (typically in nanoseconds for OTel)
         start_time = (
-            raw_span.get("startTimeUnixNano") or
-            raw_span.get("startTime") or
-            raw_span.get("start_time_unix_nano") or
-            0
+            raw_span.get("startTimeUnixNano")
+            or raw_span.get("startTime")
+            or raw_span.get("start_time_unix_nano")
+            or 0
         )
         end_time = (
-            raw_span.get("endTimeUnixNano") or
-            raw_span.get("endTime") or
-            raw_span.get("end_time_unix_nano") or
-            0
+            raw_span.get("endTimeUnixNano")
+            or raw_span.get("endTime")
+            or raw_span.get("end_time_unix_nano")
+            or 0
         )
 
         # Handle string timestamps
@@ -476,10 +473,7 @@ class OTelParser:
 
         # If no root spans found, find spans whose parent isn't in our span map
         if not root_spans:
-            root_spans = [
-                s for s in spans
-                if s.parentSpanId not in self._span_map
-            ]
+            root_spans = [s for s in spans if s.parentSpanId not in self._span_map]
 
         # Set root spans depth to 0 and propagate
         for root in root_spans:

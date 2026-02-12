@@ -96,3 +96,13 @@ dmypy.json
 # Tracemaid output
 traces/
 *.mmd
+
+# Validation scripts
+filtered_output.json
+*_validation.py
+validate_*.py
+
+# Coverage
+.coverage
+coverage.json
+

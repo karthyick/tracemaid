@@ -16,7 +16,6 @@ from tracemaid.core.selector import SpanSelector
 from tracemaid.core.parser import Span, Trace
 from tracemaid.core.features import FeatureExtractor
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -32,18 +31,21 @@ def selector() -> SpanSelector:
 def simple_features() -> np.ndarray:
     """Create simple feature array with clear structure for testing."""
     # 10 points in 6D space with some clear patterns
-    return np.array([
-        [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # Root span
-        [0.5, 0.5, 0.5, 0.0, 0.0, 0.2],  # Middle span
-        [1.0, 1.0, 1.0, 0.0, 0.0, 1.0],  # Extreme span (max in multiple dims)
-        [0.1, 0.1, 0.1, 1.0, 0.0, 0.3],  # Error span
-        [0.2, 0.3, 0.4, 0.0, 0.0, 0.4],  # Regular span
-        [0.8, 0.2, 0.1, 0.0, 0.0, 0.5],  # Long but shallow
-        [0.1, 0.9, 0.8, 0.0, 0.0, 0.6],  # Short but deep with many children
-        [0.3, 0.3, 0.3, 0.0, 0.0, 0.7],  # Average span
-        [0.6, 0.6, 0.6, 0.0, 0.0, 0.8],  # Above average
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.9],  # Minimal span (late)
-    ], dtype=np.float64)
+    return np.array(
+        [
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # Root span
+            [0.5, 0.5, 0.5, 0.0, 0.0, 0.2],  # Middle span
+            [1.0, 1.0, 1.0, 0.0, 0.0, 1.0],  # Extreme span (max in multiple dims)
+            [0.1, 0.1, 0.1, 1.0, 0.0, 0.3],  # Error span
+            [0.2, 0.3, 0.4, 0.0, 0.0, 0.4],  # Regular span
+            [0.8, 0.2, 0.1, 0.0, 0.0, 0.5],  # Long but shallow
+            [0.1, 0.9, 0.8, 0.0, 0.0, 0.6],  # Short but deep with many children
+            [0.3, 0.3, 0.3, 0.0, 0.0, 0.7],  # Average span
+            [0.6, 0.6, 0.6, 0.0, 0.0, 0.8],  # Above average
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.9],  # Minimal span (late)
+        ],
+        dtype=np.float64,
+    )
 
 
 @pytest.fixture
@@ -69,7 +71,7 @@ def simple_trace() -> Trace:
         duration=1000000,
         status="OK",
         depth=0,
-        children=[]
+        children=[],
     )
     child1 = Span(
         spanId="child1",
@@ -79,7 +81,7 @@ def simple_trace() -> Trace:
         duration=500000,
         status="OK",
         depth=1,
-        children=[]
+        children=[],
     )
     child2 = Span(
         spanId="child2",
@@ -89,7 +91,7 @@ def simple_trace() -> Trace:
         duration=300000,
         status="OK",
         depth=1,
-        children=[]
+        children=[],
     )
     grandchild = Span(
         spanId="grandchild",
@@ -99,7 +101,7 @@ def simple_trace() -> Trace:
         duration=200000,
         status="OK",
         depth=2,
-        children=[]
+        children=[],
     )
     error_span = Span(
         spanId="error",
@@ -109,7 +111,7 @@ def simple_trace() -> Trace:
         duration=50000,
         status="ERROR",
         depth=2,
-        children=[]
+        children=[],
     )
 
     root.children = [child1, child2]
@@ -119,7 +121,7 @@ def simple_trace() -> Trace:
     return Trace(
         traceId="trace123",
         spans=[root, child1, child2, grandchild, error_span],
-        total_duration=1000000
+        total_duration=1000000,
     )
 
 
@@ -137,7 +139,7 @@ def larger_trace() -> Trace:
         duration=2000000,
         status="OK",
         depth=0,
-        children=[]
+        children=[],
     )
     spans.append(root)
 
@@ -151,7 +153,7 @@ def larger_trace() -> Trace:
             duration=1000000 // i,
             status="OK" if i != 2 else "ERROR",
             depth=1,
-            children=[]
+            children=[],
         )
         spans.append(child)
         root.children.append(child)
@@ -167,7 +169,7 @@ def larger_trace() -> Trace:
             duration=500000 // (i - 3),
             status="OK",
             depth=2,
-            children=[]
+            children=[],
         )
         spans.append(child)
         spans[parent_idx].children.append(child)
@@ -183,16 +185,12 @@ def larger_trace() -> Trace:
             duration=100000 // (i - 9),
             status="OK",
             depth=3,
-            children=[]
+            children=[],
         )
         spans.append(child)
         spans[parent_idx].children.append(child)
 
-    return Trace(
-        traceId="large_trace",
-        spans=spans,
-        total_duration=2000000
-    )
+    return Trace(traceId="large_trace", spans=spans, total_duration=2000000)
 
 
 # =============================================================================
@@ -203,7 +201,9 @@ def larger_trace() -> Trace:
 class TestSelectHullPoints:
     """Tests for ConvexHull-based point selection."""
 
-    def test_hull_returns_list_of_indices(self, selector: SpanSelector, simple_features: np.ndarray):
+    def test_hull_returns_list_of_indices(
+        self, selector: SpanSelector, simple_features: np.ndarray
+    ):
         """ConvexHull should return a list of integer indices."""
         result = selector.select_hull_points(simple_features)
 
@@ -266,18 +266,21 @@ class TestSelectHullPoints:
     def test_hull_includes_extremes(self, selector: SpanSelector):
         """Hull should include points with extreme values."""
         # Create features with clear extremes
-        features = np.array([
-            [0.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Min in dim 0
-            [1.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Max in dim 0
-            [0.5, 0.0, 0.5, 0.0, 0.0, 0.5],  # Min in dim 1
-            [0.5, 1.0, 0.5, 0.0, 0.0, 0.5],  # Max in dim 1
-            [0.5, 0.5, 0.0, 0.0, 0.0, 0.5],  # Min in dim 2
-            [0.5, 0.5, 1.0, 0.0, 0.0, 0.5],  # Max in dim 2
-            [0.5, 0.5, 0.5, 0.0, 0.0, 0.0],  # Min in dim 5
-            [0.5, 0.5, 0.5, 0.0, 0.0, 1.0],  # Max in dim 5
-            [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior point
-            [0.4, 0.4, 0.4, 0.0, 0.0, 0.4],  # Interior point
-        ], dtype=np.float64)
+        features = np.array(
+            [
+                [0.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Min in dim 0
+                [1.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Max in dim 0
+                [0.5, 0.0, 0.5, 0.0, 0.0, 0.5],  # Min in dim 1
+                [0.5, 1.0, 0.5, 0.0, 0.0, 0.5],  # Max in dim 1
+                [0.5, 0.5, 0.0, 0.0, 0.0, 0.5],  # Min in dim 2
+                [0.5, 0.5, 1.0, 0.0, 0.0, 0.5],  # Max in dim 2
+                [0.5, 0.5, 0.5, 0.0, 0.0, 0.0],  # Min in dim 5
+                [0.5, 0.5, 0.5, 0.0, 0.0, 1.0],  # Max in dim 5
+                [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior point
+                [0.4, 0.4, 0.4, 0.0, 0.0, 0.4],  # Interior point
+            ],
+            dtype=np.float64,
+        )
 
         result = selector.select_hull_points(features)
 
@@ -296,7 +299,9 @@ class TestSelectHullPoints:
 class TestSelectClusterCenters:
     """Tests for K-Means-based cluster center selection."""
 
-    def test_cluster_returns_list_of_indices(self, selector: SpanSelector, simple_features: np.ndarray):
+    def test_cluster_returns_list_of_indices(
+        self, selector: SpanSelector, simple_features: np.ndarray
+    ):
         """K-Means should return a list of integer indices."""
         result = selector.select_cluster_centers(simple_features, n_clusters=3)
 
@@ -311,7 +316,9 @@ class TestSelectClusterCenters:
         for idx in result:
             assert 0 <= idx < n_samples
 
-    def test_cluster_returns_unique_indices(self, selector: SpanSelector, simple_features: np.ndarray):
+    def test_cluster_returns_unique_indices(
+        self, selector: SpanSelector, simple_features: np.ndarray
+    ):
         """All returned indices should be unique."""
         result = selector.select_cluster_centers(simple_features, n_clusters=5)
 
@@ -378,9 +385,11 @@ class TestSelectClusterCenters:
         cluster3_indices = set(range(10, 15))
 
         result_set = set(result)
-        assert len(result_set & cluster1_indices) >= 1 or \
-               len(result_set & cluster2_indices) >= 1 or \
-               len(result_set & cluster3_indices) >= 1
+        assert (
+            len(result_set & cluster1_indices) >= 1
+            or len(result_set & cluster2_indices) >= 1
+            or len(result_set & cluster3_indices) >= 1
+        )
 
 
 # =============================================================================
@@ -391,7 +400,9 @@ class TestSelectClusterCenters:
 class TestSelectImportant:
     """Tests for combined selection algorithm."""
 
-    def test_important_returns_list_of_indices(self, selector: SpanSelector, simple_features: np.ndarray):
+    def test_important_returns_list_of_indices(
+        self, selector: SpanSelector, simple_features: np.ndarray
+    ):
         """Combined selection should return a list of integer indices."""
         result = selector.select_important(simple_features, max_spans=5)
 
@@ -405,7 +416,9 @@ class TestSelectImportant:
             result = selector.select_important(large_features, max_spans=max_spans)
             assert len(result) <= max_spans
 
-    def test_important_returns_unique_indices(self, selector: SpanSelector, large_features: np.ndarray):
+    def test_important_returns_unique_indices(
+        self, selector: SpanSelector, large_features: np.ndarray
+    ):
         """All returned indices should be unique."""
         result = selector.select_important(large_features, max_spans=15)
 
@@ -434,7 +447,9 @@ class TestSelectImportant:
         assert len(result) == 7
         assert set(result) == set(range(7))
 
-    def test_important_combines_hull_and_cluster(self, selector: SpanSelector, large_features: np.ndarray):
+    def test_important_combines_hull_and_cluster(
+        self, selector: SpanSelector, large_features: np.ndarray
+    ):
         """Should include points from both hull and cluster selection."""
         result = selector.select_important(large_features, max_spans=15)
 
@@ -454,18 +469,21 @@ class TestSelectImportant:
     def test_important_prioritizes_hull_points(self, selector: SpanSelector):
         """Hull points should be prioritized over cluster centers."""
         # Create data where hull points are distinct from cluster centers
-        features = np.array([
-            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # Extreme 0
-            [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Extreme 1
-            [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],  # Extreme 2
-            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # Extreme 3
-            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # Extreme 4
-            [1.0, 1.0, 1.0, 0.0, 0.0, 1.0],  # Extreme 5
-            [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 6
-            [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 7
-            [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 8
-            [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 9
-        ], dtype=np.float64)
+        features = np.array(
+            [
+                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # Extreme 0
+                [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Extreme 1
+                [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],  # Extreme 2
+                [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # Extreme 3
+                [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # Extreme 4
+                [1.0, 1.0, 1.0, 0.0, 0.0, 1.0],  # Extreme 5
+                [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 6
+                [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 7
+                [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 8
+                [0.5, 0.5, 0.5, 0.0, 0.0, 0.5],  # Interior 9
+            ],
+            dtype=np.float64,
+        )
 
         # With max_spans=4, should prioritize hull points
         result = selector.select_important(features, max_spans=4)
@@ -490,6 +508,7 @@ class TestSelectFromTrace:
 
         assert isinstance(result, list)
         from tracemaid.core.parser import Span
+
         assert all(isinstance(span, Span) for span in result)
 
     def test_from_trace_respects_max_spans(self, selector: SpanSelector, larger_trace: Trace):
@@ -500,11 +519,7 @@ class TestSelectFromTrace:
 
     def test_from_trace_empty_trace(self, selector: SpanSelector):
         """Empty trace should return empty list."""
-        empty_trace = Trace(
-            traceId="empty",
-            spans=[],
-            total_duration=0
-        )
+        empty_trace = Trace(traceId="empty", spans=[], total_duration=0)
         result = selector.select_from_trace(empty_trace, max_spans=10)
 
         assert result == []
@@ -533,13 +548,9 @@ class TestSelectFromTrace:
             duration=1000,
             status="OK",
             depth=0,
-            children=[]
+            children=[],
         )
-        trace = Trace(
-            traceId="single",
-            spans=[single_span],
-            total_duration=1000
-        )
+        trace = Trace(traceId="single", spans=[single_span], total_duration=1000)
 
         result = selector.select_from_trace(trace, max_spans=10)
 
@@ -552,10 +563,7 @@ class TestSelectFromTrace:
 
         for selected_span in result:
             # Find the original span
-            original = next(
-                s for s in larger_trace.spans
-                if s.spanId == selected_span.spanId
-            )
+            original = next(s for s in larger_trace.spans if s.spanId == selected_span.spanId)
 
             assert selected_span.service == original.service
             assert selected_span.operation == original.operation
@@ -764,16 +772,19 @@ class TestFallbackSelection:
         selector = SpanSelector()
 
         # Create features with known extremes
-        features = np.array([
-            [0.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Min in dim 0
-            [1.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Max in dim 0
-            [0.5, 0.0, 0.5, 0.0, 0.0, 0.5],  # Min in dim 1
-            [0.5, 1.0, 0.5, 0.0, 0.0, 0.5],  # Max in dim 1
-            [0.5, 0.5, 0.0, 0.0, 0.0, 0.5],  # Min in dim 2
-            [0.5, 0.5, 1.0, 0.0, 0.0, 0.5],  # Max in dim 2
-            [0.5, 0.5, 0.5, 0.0, 0.0, 0.0],  # Min in dim 5
-            [0.5, 0.5, 0.5, 0.0, 0.0, 1.0],  # Max in dim 5
-        ], dtype=np.float64)
+        features = np.array(
+            [
+                [0.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Min in dim 0
+                [1.0, 0.5, 0.5, 0.0, 0.0, 0.5],  # Max in dim 0
+                [0.5, 0.0, 0.5, 0.0, 0.0, 0.5],  # Min in dim 1
+                [0.5, 1.0, 0.5, 0.0, 0.0, 0.5],  # Max in dim 1
+                [0.5, 0.5, 0.0, 0.0, 0.0, 0.5],  # Min in dim 2
+                [0.5, 0.5, 1.0, 0.0, 0.0, 0.5],  # Max in dim 2
+                [0.5, 0.5, 0.5, 0.0, 0.0, 0.0],  # Min in dim 5
+                [0.5, 0.5, 0.5, 0.0, 0.0, 1.0],  # Max in dim 5
+            ],
+            dtype=np.float64,
+        )
 
         # Call the private method directly for testing
         result = selector._select_extreme_points(features)

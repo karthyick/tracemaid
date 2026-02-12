@@ -90,14 +90,16 @@ class SpanSelector:
 
     # Importance weights for sorting spans
     # Feature indices: [0]=duration, [1]=depth, [2]=children, [3]=error, [4]=root, [5]=start_time
-    importance_weights: np.ndarray = np.array([
-        50.0,   # duration_normalized - slow spans indicate performance issues
-        5.0,    # depth_normalized - deep spans show call chain depth
-        10.0,   # child_count - orchestrators coordinate multiple operations
-        1000.0, # is_error - CRITICAL: errors must always be visible
-        100.0,  # is_root - entry points are important for understanding flow
-        0.0,    # relative_start_time - not used for importance scoring
-    ])
+    importance_weights: np.ndarray = np.array(
+        [
+            50.0,  # duration_normalized - slow spans indicate performance issues
+            5.0,  # depth_normalized - deep spans show call chain depth
+            10.0,  # child_count - orchestrators coordinate multiple operations
+            1000.0,  # is_error - CRITICAL: errors must always be visible
+            100.0,  # is_root - entry points are important for understanding flow
+            0.0,  # relative_start_time - not used for importance scoring
+        ]
+    )
 
     def __init__(
         self,
@@ -222,9 +224,7 @@ class SpanSelector:
         """
         return float(np.dot(features[idx], self.importance_weights))
 
-    def _sort_by_importance(
-        self, indices: List[int], features: np.ndarray
-    ) -> List[int]:
+    def _sort_by_importance(self, indices: List[int], features: np.ndarray) -> List[int]:
         """Sort span indices by their importance scores (descending).
 
         Args:
@@ -234,15 +234,9 @@ class SpanSelector:
         Returns:
             List of indices sorted by importance (most important first)
         """
-        return sorted(
-            indices,
-            key=lambda idx: self._importance_score(features, idx),
-            reverse=True
-        )
+        return sorted(indices, key=lambda idx: self._importance_score(features, idx), reverse=True)
 
-    def select_cluster_centers(
-        self, features: np.ndarray, n_clusters: int = 5
-    ) -> List[int]:
+    def select_cluster_centers(self, features: np.ndarray, n_clusters: int = 5) -> List[int]:
         """Select representative spans using K-Means clustering.
 
         Clusters the spans based on their feature vectors and selects
@@ -320,9 +314,7 @@ class SpanSelector:
         self._last_cluster_indices = unique_indices
         return unique_indices
 
-    def select_important(
-        self, features: np.ndarray, max_spans: int = 10
-    ) -> List[int]:
+    def select_important(self, features: np.ndarray, max_spans: int = 10) -> List[int]:
         """Select important spans by combining hull and cluster methods.
 
         Combines ConvexHull boundary points with K-Means cluster
@@ -393,9 +385,7 @@ class SpanSelector:
 
         return combined
 
-    def select_from_trace(
-        self, trace: "Trace", max_spans: int = 10
-    ) -> List["Span"]:
+    def select_from_trace(self, trace: "Trace", max_spans: int = 10) -> List["Span"]:
         """Select important spans directly from a Trace object.
 
         Convenience method that handles feature extraction and span

@@ -11,8 +11,6 @@ This module tests all auto-instrumentation functions including:
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestInstrumentRequests:
     """Tests for instrument_requests function."""
@@ -20,17 +18,20 @@ class TestInstrumentRequests:
     def test_instrument_requests_callable(self) -> None:
         """Test instrument_requests is callable."""
         from tracemaid.integrations import instrument_requests
+
         assert callable(instrument_requests)
 
     def test_instrument_requests_no_error(self) -> None:
         """Test instrument_requests runs without error."""
         from tracemaid.integrations import instrument_requests
+
         # Should not raise - either succeeds or logs warning
         instrument_requests()
 
     def test_instrument_requests_idempotent(self) -> None:
         """Test calling instrument_requests multiple times doesn't error."""
         from tracemaid.integrations import instrument_requests
+
         instrument_requests()
         instrument_requests()  # Should not raise
 
@@ -41,16 +42,19 @@ class TestInstrumentHttpx:
     def test_instrument_httpx_callable(self) -> None:
         """Test instrument_httpx is callable."""
         from tracemaid.integrations import instrument_httpx
+
         assert callable(instrument_httpx)
 
     def test_instrument_httpx_no_error(self) -> None:
         """Test instrument_httpx runs without error."""
         from tracemaid.integrations import instrument_httpx
+
         instrument_httpx()
 
     def test_instrument_httpx_idempotent(self) -> None:
         """Test calling instrument_httpx multiple times doesn't error."""
         from tracemaid.integrations import instrument_httpx
+
         instrument_httpx()
         instrument_httpx()
 
@@ -61,17 +65,20 @@ class TestInstrumentSqlalchemy:
     def test_instrument_sqlalchemy_callable(self) -> None:
         """Test instrument_sqlalchemy is callable."""
         from tracemaid.integrations import instrument_sqlalchemy
+
         assert callable(instrument_sqlalchemy)
 
     def test_instrument_sqlalchemy_no_error(self) -> None:
         """Test instrument_sqlalchemy runs without error."""
         from tracemaid.integrations import instrument_sqlalchemy
+
         instrument_sqlalchemy()
 
     def test_instrument_sqlalchemy_accepts_engine(self) -> None:
         """Test instrument_sqlalchemy accepts engine parameter."""
         from tracemaid.integrations import instrument_sqlalchemy
         from unittest.mock import MagicMock
+
         mock_engine = MagicMock()
         # Should not raise
         instrument_sqlalchemy(engine=mock_engine)
@@ -83,17 +90,20 @@ class TestInstrumentRedis:
     def test_instrument_redis_callable(self) -> None:
         """Test instrument_redis is callable."""
         from tracemaid.integrations import instrument_redis
+
         assert callable(instrument_redis)
 
     def test_instrument_redis_no_error(self) -> None:
         """Test instrument_redis runs without error."""
         from tracemaid.integrations import instrument_redis
+
         instrument_redis()
 
     def test_instrument_redis_accepts_client(self) -> None:
         """Test instrument_redis accepts client parameter."""
         from tracemaid.integrations import instrument_redis
         from unittest.mock import MagicMock
+
         mock_client = MagicMock()
         # Should not raise
         instrument_redis(client=mock_client)
@@ -105,11 +115,13 @@ class TestInstrumentLogging:
     def test_instrument_logging_callable(self) -> None:
         """Test instrument_logging is callable."""
         from tracemaid.integrations import instrument_logging
+
         assert callable(instrument_logging)
 
     def test_instrument_logging_no_error(self) -> None:
         """Test instrument_logging runs without error."""
         from tracemaid.integrations import instrument_logging
+
         instrument_logging()
 
 
@@ -119,11 +131,13 @@ class TestInstrumentAll:
     def test_instrument_all_callable(self) -> None:
         """Test instrument_all is callable."""
         from tracemaid.integrations import instrument_all
+
         assert callable(instrument_all)
 
     def test_instrument_all_returns_dict(self) -> None:
         """Test instrument_all returns a dictionary of results."""
         from tracemaid.integrations import instrument_all
+
         result = instrument_all()
 
         assert isinstance(result, dict)
@@ -136,6 +150,7 @@ class TestInstrumentAll:
     def test_instrument_all_values_are_bool(self) -> None:
         """Test instrument_all returns boolean values."""
         from tracemaid.integrations import instrument_all
+
         result = instrument_all()
 
         for key, value in result.items():
@@ -144,6 +159,7 @@ class TestInstrumentAll:
     def test_instrument_all_idempotent(self) -> None:
         """Test calling instrument_all multiple times doesn't error."""
         from tracemaid.integrations import instrument_all
+
         result1 = instrument_all()
         result2 = instrument_all()
 
@@ -154,6 +170,7 @@ class TestInstrumentAll:
         """Test instrument_all accepts sqlalchemy_engine parameter."""
         from tracemaid.integrations import instrument_all
         from unittest.mock import MagicMock
+
         mock_engine = MagicMock()
         # Should not raise
         result = instrument_all(sqlalchemy_engine=mock_engine)
@@ -163,6 +180,7 @@ class TestInstrumentAll:
         """Test instrument_all accepts redis_client parameter."""
         from tracemaid.integrations import instrument_all
         from unittest.mock import MagicMock
+
         mock_client = MagicMock()
         # Should not raise
         result = instrument_all(redis_client=mock_client)
@@ -172,6 +190,7 @@ class TestInstrumentAll:
         """Test instrument_all accepts both parameters."""
         from tracemaid.integrations import instrument_all
         from unittest.mock import MagicMock
+
         mock_engine = MagicMock()
         mock_client = MagicMock()
         # Should not raise
@@ -224,6 +243,7 @@ class TestIntegrationsExports:
     def test_instrument_all_in_integrations_all(self) -> None:
         """Test instrument_all is in the __all__ list."""
         from tracemaid.integrations import __all__
+
         assert "instrument_all" in __all__
 
     def test_all_new_functions_in_all(self) -> None:
@@ -249,6 +269,7 @@ class TestInstrumentAllResultValues:
     def test_requests_instrumentation_available(self) -> None:
         """Test requests instrumentation is available (installed in this env)."""
         from tracemaid.integrations import instrument_all
+
         result = instrument_all()
         # We installed opentelemetry-instrumentation-requests
         assert result["requests"] is True
@@ -256,6 +277,7 @@ class TestInstrumentAllResultValues:
     def test_httpx_instrumentation_available(self) -> None:
         """Test httpx instrumentation is available (installed in this env)."""
         from tracemaid.integrations import instrument_all
+
         result = instrument_all()
         # We installed opentelemetry-instrumentation-httpx
         assert result["httpx"] is True
@@ -263,6 +285,7 @@ class TestInstrumentAllResultValues:
     def test_sqlalchemy_instrumentation_available(self) -> None:
         """Test sqlalchemy instrumentation is available (installed in this env)."""
         from tracemaid.integrations import instrument_all
+
         result = instrument_all()
         # We installed opentelemetry-instrumentation-sqlalchemy
         assert result["sqlalchemy"] is True

@@ -12,7 +12,6 @@ from numpy.testing import assert_array_almost_equal, assert_allclose
 from tracemaid.core.parser import Span, Trace
 from tracemaid.core.features import FeatureExtractor, FEATURE_NAMES
 
-
 # ============================================================================
 # Test Fixtures
 # ============================================================================
@@ -402,8 +401,8 @@ class TestFeatureValues:
         # Depths: 0, 1, 2, 3. Max depth = 3
         # Normalized: 0/3=0, 1/3=0.33, 2/3=0.67, 3/3=1
         assert features[0, 1] == pytest.approx(0.0)
-        assert features[1, 1] == pytest.approx(1/3, rel=0.01)
-        assert features[2, 1] == pytest.approx(2/3, rel=0.01)
+        assert features[1, 1] == pytest.approx(1 / 3, rel=0.01)
+        assert features[2, 1] == pytest.approx(2 / 3, rel=0.01)
         assert features[3, 1] == pytest.approx(1.0)
 
     def test_child_count_values(self, simple_trace):
@@ -556,8 +555,8 @@ class TestErrorSpanFeature:
         features = extractor.extract(wide_trace)
 
         # child5 (index 6) has ERROR status
-        assert features[0, 3] == 0.0   # root - OK
-        assert features[6, 3] == 1.0   # child5 - ERROR
+        assert features[0, 3] == 0.0  # root - OK
+        assert features[6, 3] == 1.0  # child5 - ERROR
 
         # Count errors
         error_count = np.sum(features[:, 3])
@@ -698,7 +697,7 @@ class TestEdgeCases:
             )
             spans.append(span)
             if i > 0:
-                spans[i-1].children.append(span)
+                spans[i - 1].children.append(span)
 
         trace = Trace(traceId="very_deep", spans=spans, total_duration=100)
 

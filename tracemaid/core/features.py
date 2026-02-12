@@ -55,7 +55,6 @@ from sklearn.preprocessing import StandardScaler
 
 from tracemaid.core.parser import Span, Trace
 
-
 # Feature names constant defining the 6 dimensions
 FEATURE_NAMES: Tuple[str, ...] = (
     "duration_normalized",
@@ -177,9 +176,7 @@ class FeatureExtractor:
                        with normalize=True)
         """
         if self._scaler is None:
-            raise ValueError(
-                "No scaler available. Call extract() with normalize=True first."
-            )
+            raise ValueError("No scaler available. Call extract() with normalize=True first.")
         return self._scaler.inverse_transform(features)
 
     def _get_max_depth(self, trace: Trace) -> int:
@@ -234,10 +231,7 @@ class FeatureExtractor:
         # If no explicit roots, find spans whose parent isn't in the trace
         if not root_spans:
             span_ids = {s.spanId for s in trace.spans}
-            root_spans = [
-                s for s in trace.spans
-                if s.parentSpanId not in span_ids
-            ]
+            root_spans = [s for s in trace.spans if s.parentSpanId not in span_ids]
 
         # Process spans by depth level (BFS-style)
         # Root spans start at time 0

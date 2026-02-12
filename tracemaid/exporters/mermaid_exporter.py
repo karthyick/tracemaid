@@ -27,9 +27,7 @@ Example:
 
 from __future__ import annotations
 
-import json
 import logging
-import os
 import threading
 from collections import defaultdict
 from datetime import datetime
@@ -39,7 +37,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExporter, SpanExportResult
 
-from tracemaid.core.parser import Span, Trace, OTelParser
+from tracemaid.core.parser import OTelParser
 from tracemaid.core.selector import SpanSelector
 from tracemaid.core.mermaid import MermaidGenerator
 
@@ -149,13 +147,19 @@ class TracemaidExporter(SpanExporter):
                 span_dict = self._readable_span_to_dict(span)
                 self._trace_spans[trace_id].append(span_dict)
                 self._trace_last_update[trace_id] = current_time
-                logger.debug("Collected span '%s' for trace %s (parent: %s)",
-                           span.name, trace_id[:8], span.parent)
+                logger.debug(
+                    "Collected span '%s' for trace %s (parent: %s)",
+                    span.name,
+                    trace_id[:8],
+                    span.parent,
+                )
 
                 # Check if this is a root span (no parent)
                 if not span.parent:
                     traces_with_root.add(trace_id)
-                    logger.info("Root span detected for trace %s, marking for processing", trace_id[:8])
+                    logger.info(
+                        "Root span detected for trace %s, marking for processing", trace_id[:8]
+                    )
 
             # Check for complete traces:
             # 1. Traces that received a root span (immediately complete)
@@ -217,14 +221,13 @@ class TracemaidExporter(SpanExporter):
         # Determine service name from resource attributes
         service_name = "unknown"
         if span.resource and span.resource.attributes:
-            service_name = span.resource.attributes.get(
-                "service.name", "unknown"
-            )
+            service_name = span.resource.attributes.get("service.name", "unknown")
 
         # Determine status
         status_code = 1  # OK
         if span.status and span.status.status_code:
             from opentelemetry.trace import StatusCode
+
             if span.status.status_code == StatusCode.ERROR:
                 status_code = 2  # ERROR
 
@@ -232,10 +235,7 @@ class TracemaidExporter(SpanExporter):
         attributes = []
         if span.attributes:
             for key, value in span.attributes.items():
-                attributes.append({
-                    "key": key,
-                    "value": {"stringValue": str(value)}
-                })
+                attributes.append({"key": key, "value": {"stringValue": str(value)}})
 
         return {
             "traceId": format(context.trace_id, "032x"),
@@ -266,10 +266,7 @@ class TracemaidExporter(SpanExporter):
 
         try:
             # Build OTLP format for parser
-            otlp_data = {
-                "traceId": trace_id,
-                "spans": spans
-            }
+            otlp_data = {"traceId": trace_id, "spans": spans}
 
             # Parse trace using tracemaid parser
             trace = self._parser.parse_otlp(otlp_data)
@@ -279,16 +276,11 @@ class TracemaidExporter(SpanExporter):
                 return
 
             # Select important spans using tracemaid's ML algorithms
-            selected_spans = self._selector.select_from_trace(
-                trace,
-                max_spans=self.max_spans
-            )
+            selected_spans = self._selector.select_from_trace(trace, max_spans=self.max_spans)
 
             # Generate Mermaid diagram
             diagram = self._generator.generate(
-                selected_spans,
-                trace,
-                enable_styling=self.enable_styling
+                selected_spans, trace, enable_styling=self.enable_styling
             )
 
             # Output the diagram
@@ -299,15 +291,11 @@ class TracemaidExporter(SpanExporter):
                 "Failed to generate Mermaid diagram for trace %s: %s",
                 trace_id,
                 str(e),
-                exc_info=True
+                exc_info=True,
             )
 
     def _output_diagram(
-        self,
-        trace_id: str,
-        diagram: str,
-        total_spans: int,
-        selected_spans: int
+        self, trace_id: str, diagram: str, total_spans: int, selected_spans: int
     ) -> None:
         """Output the generated Mermaid diagram.
 
@@ -334,7 +322,7 @@ class TracemaidExporter(SpanExporter):
             filepath = self.output_dir / filename
 
             with open(filepath, "w", encoding="utf-8") as f:
-                f.write(f"%%{{init: {{'theme': 'default'}}}}%%\n")
+                f.write("%%{init: {'theme': 'default'}}%%\n")
                 f.write(f"%% Trace ID: {trace_id}\n")
                 f.write(f"%% Generated: {datetime.now().isoformat()}\n")
                 f.write(f"%% Spans: {selected_spans}/{total_spans} selected\n\n")

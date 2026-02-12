@@ -18,11 +18,9 @@ Standard Usage (Automatic - Recommended):
     >>> # Every request now automatically generates a Mermaid diagram!
 
 Manual Usage (for parsing existing trace files):
-    >>> from tracemaid import OTelParser, SpanSelector, MermaidGenerator
+    >>> from tracemaid import OTelParser, MermaidGenerator
     >>> parser = OTelParser()
     >>> trace = parser.parse_json(json_str)
-    >>> selector = SpanSelector()
-    >>> important = selector.select_from_trace(trace, max_spans=10)
     >>> generator = MermaidGenerator()
     >>> diagram = generator.generate(important, trace)
 """
@@ -33,23 +31,16 @@ __email__ = "Karthickrajam18@gmail.com"
 
 # Core components for manual trace analysis
 from tracemaid.core.parser import Span, Trace, OTelParser
-from tracemaid.core.features import FeatureExtractor, FEATURE_NAMES
-from tracemaid.core.selector import SpanSelector
 from tracemaid.core.mermaid import MermaidGenerator, MermaidStyle
-
-# Exporter for automatic trace-to-mermaid conversion
-from tracemaid.exporters import TracemaidExporter
+from tracemaid.core.plantuml import PlantUMLGenerator, PlantUMLStyle
 
 __all__ = [
     # Core components
     "Span",
     "Trace",
     "OTelParser",
-    "FeatureExtractor",
-    "FEATURE_NAMES",
-    "SpanSelector",
     "MermaidGenerator",
     "MermaidStyle",
-    # Exporter
-    "TracemaidExporter",
+    "PlantUMLGenerator",
+    "PlantUMLStyle",
 ]

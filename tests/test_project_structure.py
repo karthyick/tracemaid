@@ -5,13 +5,8 @@ Tests verify that the project structure is correctly initialized
 with all required directories, files, and valid configurations.
 """
 
-import os
-import sys
 import tomllib
 from pathlib import Path
-
-import pytest
-
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -147,7 +142,7 @@ class TestPyprojectToml:
         with open(pyproject_file, "rb") as f:
             config = tomllib.load(f)
         assert "version" in config["project"], "project.version missing"
-        assert config["project"]["version"] == "0.1.0", "project.version should be '0.1.0'"
+        assert config["project"]["version"] == "0.1.3", "project.version should be '0.1.3'"
 
     def test_pyproject_has_description(self) -> None:
         """Verify pyproject.toml has project description."""
@@ -213,28 +208,33 @@ class TestPackageImports:
     def test_import_tracemaid(self) -> None:
         """Verify tracemaid can be imported."""
         import tracemaid
+
         assert tracemaid is not None
 
     def test_tracemaid_has_version(self) -> None:
         """Verify tracemaid.__version__ is accessible."""
         import tracemaid
+
         assert hasattr(tracemaid, "__version__")
-        assert tracemaid.__version__ == "0.1.0"
+        assert tracemaid.__version__ == "0.1.3"
 
     def test_tracemaid_has_author(self) -> None:
         """Verify tracemaid.__author__ is accessible."""
         import tracemaid
+
         assert hasattr(tracemaid, "__author__")
         assert tracemaid.__author__ == "KR"
 
     def test_import_tracemaid_core(self) -> None:
         """Verify tracemaid.core can be imported."""
         import tracemaid.core
+
         assert tracemaid.core is not None
 
     def test_import_tracemaid_utils(self) -> None:
         """Verify tracemaid.utils can be imported."""
         import tracemaid.utils
+
         assert tracemaid.utils is not None
 
 
@@ -331,6 +331,7 @@ class TestPackageMetadata:
     def test_has_email_attribute(self) -> None:
         """Verify tracemaid.__email__ is accessible."""
         import tracemaid
+
         assert hasattr(tracemaid, "__email__")
         assert "@" in tracemaid.__email__, "__email__ should be a valid email"
 

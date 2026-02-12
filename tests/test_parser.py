@@ -6,7 +6,6 @@ for parsing various OpenTelemetry trace formats.
 """
 
 import json
-from typing import Any, Dict
 
 import pytest
 
@@ -24,7 +23,7 @@ class TestSpanDataclass:
             service="test-service",
             operation="test-operation",
             duration=1000,
-            status="OK"
+            status="OK",
         )
         assert span.spanId == "abc123"
         assert span.parentSpanId is None
@@ -43,7 +42,7 @@ class TestSpanDataclass:
             service="child-service",
             operation="child-op",
             duration=500,
-            status="OK"
+            status="OK",
         )
         assert span.parentSpanId == "parent456"
 
@@ -56,7 +55,7 @@ class TestSpanDataclass:
             operation="op",
             duration=100,
             status="OK",
-            depth=3
+            depth=3,
         )
         assert span.depth == 3
 
@@ -68,7 +67,7 @@ class TestSpanDataclass:
             service="svc",
             operation="child-op",
             duration=50,
-            status="OK"
+            status="OK",
         )
         parent = Span(
             spanId="parent",
@@ -77,7 +76,7 @@ class TestSpanDataclass:
             operation="parent-op",
             duration=100,
             status="OK",
-            children=[child]
+            children=[child],
         )
         assert len(parent.children) == 1
         assert parent.children[0].spanId == "child"
@@ -91,7 +90,7 @@ class TestSpanDataclass:
                 service="svc",
                 operation="op",
                 duration=100,
-                status="OK"
+                status="OK",
             )
 
     def test_span_negative_duration_raises_error(self) -> None:
@@ -103,7 +102,7 @@ class TestSpanDataclass:
                 service="svc",
                 operation="op",
                 duration=-100,
-                status="OK"
+                status="OK",
             )
 
     def test_span_negative_depth_raises_error(self) -> None:
@@ -116,18 +115,13 @@ class TestSpanDataclass:
                 operation="op",
                 duration=100,
                 status="OK",
-                depth=-1
+                depth=-1,
             )
 
     def test_span_zero_duration_allowed(self) -> None:
         """Test that zero duration is allowed."""
         span = Span(
-            spanId="abc",
-            parentSpanId=None,
-            service="svc",
-            operation="op",
-            duration=0,
-            status="OK"
+            spanId="abc", parentSpanId=None, service="svc", operation="op", duration=0, status="OK"
         )
         assert span.duration == 0
 
@@ -139,7 +133,7 @@ class TestSpanDataclass:
             service="svc",
             operation="failed-op",
             duration=100,
-            status="ERROR"
+            status="ERROR",
         )
         assert span.status == "ERROR"
 
@@ -151,7 +145,7 @@ class TestSpanDataclass:
             service="svc",
             operation="op",
             duration=100,
-            status="UNSET"
+            status="UNSET",
         )
         assert span.status == "UNSET"
 
@@ -161,11 +155,7 @@ class TestTraceDataclass:
 
     def test_trace_creation_minimal(self) -> None:
         """Test creating a trace with minimal required fields."""
-        trace = Trace(
-            traceId="trace123",
-            spans=[],
-            total_duration=0
-        )
+        trace = Trace(traceId="trace123", spans=[], total_duration=0)
         assert trace.traceId == "trace123"
         assert trace.spans == []
         assert trace.total_duration == 0
@@ -178,13 +168,9 @@ class TestTraceDataclass:
             service="svc",
             operation="op",
             duration=1000,
-            status="OK"
+            status="OK",
         )
-        trace = Trace(
-            traceId="trace123",
-            spans=[span],
-            total_duration=1000
-        )
+        trace = Trace(traceId="trace123", spans=[span], total_duration=1000)
         assert len(trace.spans) == 1
         assert trace.spans[0].spanId == "span1"
 
@@ -206,7 +192,7 @@ class TestTraceDataclass:
             service="svc",
             operation="root-op",
             duration=1000,
-            status="OK"
+            status="OK",
         )
         child = Span(
             spanId="child",
@@ -214,13 +200,9 @@ class TestTraceDataclass:
             service="svc",
             operation="child-op",
             duration=500,
-            status="OK"
+            status="OK",
         )
-        trace = Trace(
-            traceId="trace123",
-            spans=[root, child],
-            total_duration=1000
-        )
+        trace = Trace(traceId="trace123", spans=[root, child], total_duration=1000)
         assert trace.root_span is not None
         assert trace.root_span.spanId == "root"
 
@@ -232,20 +214,22 @@ class TestTraceDataclass:
             service="svc",
             operation="child-op",
             duration=500,
-            status="OK"
+            status="OK",
         )
-        trace = Trace(
-            traceId="trace123",
-            spans=[child],
-            total_duration=500
-        )
+        trace = Trace(traceId="trace123", spans=[child], total_duration=500)
         assert trace.root_span is None
 
     def test_trace_span_count_property(self) -> None:
         """Test span_count property."""
         spans = [
-            Span(spanId=f"span{i}", parentSpanId=None, service="svc",
-                 operation="op", duration=100, status="OK")
+            Span(
+                spanId=f"span{i}",
+                parentSpanId=None,
+                service="svc",
+                operation="op",
+                duration=100,
+                status="OK",
+            )
             for i in range(5)
         ]
         trace = Trace(traceId="trace123", spans=spans, total_duration=100)
@@ -271,9 +255,9 @@ class TestOTelParserSimpleFormat:
                     "name": "root-operation",
                     "serviceName": "test-service",
                     "duration": 1000,
-                    "status": {"code": 1}
+                    "status": {"code": 1},
                 }
-            ]
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -292,9 +276,9 @@ class TestOTelParserSimpleFormat:
                     "name": "operation",
                     "serviceName": "service",
                     "duration": 500,
-                    "status": "OK"
+                    "status": "OK",
                 }
-            ]
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_json(json.dumps(data))
@@ -312,12 +296,7 @@ class TestOTelParserSimpleFormat:
         """Test extracting trace ID from spans when not at root."""
         data = {
             "spans": [
-                {
-                    "spanId": "span1",
-                    "traceId": "extracted-trace-id",
-                    "name": "op",
-                    "duration": 100
-                }
+                {"spanId": "span1", "traceId": "extracted-trace-id", "name": "op", "duration": 100}
             ]
         }
         parser = OTelParser()
@@ -349,11 +328,11 @@ class TestOTelParserResourceSpansFormat:
                                     "name": "GET /api",
                                     "startTimeUnixNano": "1704067200000000000",
                                     "endTimeUnixNano": "1704067200100000000",
-                                    "status": {"code": 1}
+                                    "status": {"code": 1},
                                 }
                             ]
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -370,11 +349,7 @@ class TestOTelParserResourceSpansFormat:
         data = {
             "resourceSpans": [
                 {
-                    "resource": {
-                        "attributes": {
-                            "service.name": "dict-service"
-                        }
-                    },
+                    "resource": {"attributes": {"service.name": "dict-service"}},
                     "scopeSpans": [
                         {
                             "spans": [
@@ -382,11 +357,11 @@ class TestOTelParserResourceSpansFormat:
                                     "traceId": "trace123",
                                     "spanId": "span1",
                                     "name": "operation",
-                                    "duration": 100
+                                    "duration": 100,
                                 }
                             ]
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -408,11 +383,11 @@ class TestOTelParserResourceSpansFormat:
                                     "traceId": "trace123",
                                     "spanId": "span1",
                                     "name": "operation",
-                                    "duration": 100
+                                    "duration": 100,
                                 }
                             ]
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -431,17 +406,15 @@ class TestOTelParserJaegerFormat:
             "data": [
                 {
                     "traceID": "jaeger-trace-123",
-                    "processes": {
-                        "p1": {"serviceName": "jaeger-service"}
-                    },
+                    "processes": {"p1": {"serviceName": "jaeger-service"}},
                     "spans": [
                         {
                             "spanID": "span1",
                             "processID": "p1",
                             "operationName": "jaeger-operation",
-                            "duration": 5000
+                            "duration": 5000,
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -458,13 +431,7 @@ class TestOTelParserJaegerFormat:
             "data": [
                 {
                     "traceId": "jaeger-trace-456",
-                    "spans": [
-                        {
-                            "spanID": "span1",
-                            "operationName": "op",
-                            "duration": 100
-                        }
-                    ]
+                    "spans": [{"spanID": "span1", "operationName": "op", "duration": 100}],
                 }
             ]
         }
@@ -509,9 +476,7 @@ class TestOTelParserSpanParsing:
         """Test that empty string parent span ID becomes None."""
         data = {
             "traceId": "trace",
-            "spans": [
-                {"spanId": "s1", "parentSpanId": "", "name": "op", "duration": 100}
-            ]
+            "spans": [{"spanId": "s1", "parentSpanId": "", "name": "op", "duration": 100}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -538,10 +503,7 @@ class TestOTelParserDurationCalculation:
 
     def test_duration_direct_field(self) -> None:
         """Test duration from direct duration field."""
-        data = {
-            "traceId": "trace",
-            "spans": [{"spanId": "s1", "name": "op", "duration": 5000}]
-        }
+        data = {"traceId": "trace", "spans": [{"spanId": "s1", "name": "op", "duration": 5000}]}
         parser = OTelParser()
         trace = parser.parse_otlp(data)
         assert trace.spans[0].duration == 5000
@@ -550,12 +512,14 @@ class TestOTelParserDurationCalculation:
         """Test duration calculation from nanosecond timestamps."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "startTimeUnixNano": "1704067200000000000",
-                "endTimeUnixNano": "1704067200100000000"
-            }]
+            "spans": [
+                {
+                    "spanId": "s1",
+                    "name": "op",
+                    "startTimeUnixNano": "1704067200000000000",
+                    "endTimeUnixNano": "1704067200100000000",
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -566,12 +530,14 @@ class TestOTelParserDurationCalculation:
         """Test duration calculation from integer timestamps."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "startTimeUnixNano": 1704067200000000000,
-                "endTimeUnixNano": 1704067200050000000
-            }]
+            "spans": [
+                {
+                    "spanId": "s1",
+                    "name": "op",
+                    "startTimeUnixNano": 1704067200000000000,
+                    "endTimeUnixNano": 1704067200050000000,
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -582,11 +548,13 @@ class TestOTelParserDurationCalculation:
         """Test duration conversion for very large nanosecond values."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 2000000000000000  # Very large, should be divided by 1000
-            }]
+            "spans": [
+                {
+                    "spanId": "s1",
+                    "name": "op",
+                    "duration": 2000000000000000,  # Very large, should be divided by 1000
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -594,14 +562,7 @@ class TestOTelParserDurationCalculation:
 
     def test_duration_float_value(self) -> None:
         """Test duration with float value."""
-        data = {
-            "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 1234.5
-            }]
-        }
+        data = {"traceId": "trace", "spans": [{"spanId": "s1", "name": "op", "duration": 1234.5}]}
         parser = OTelParser()
         trace = parser.parse_otlp(data)
         assert trace.spans[0].duration == 1234
@@ -614,7 +575,7 @@ class TestOTelParserStatusExtraction:
         """Test status extraction from integer code (OK=1)."""
         data = {
             "traceId": "trace",
-            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"code": 1}}]
+            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"code": 1}}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -624,7 +585,7 @@ class TestOTelParserStatusExtraction:
         """Test status extraction from integer code (ERROR=2)."""
         data = {
             "traceId": "trace",
-            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"code": 2}}]
+            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"code": 2}}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -634,7 +595,7 @@ class TestOTelParserStatusExtraction:
         """Test status extraction from integer code (UNSET=0)."""
         data = {
             "traceId": "trace",
-            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"code": 0}}]
+            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"code": 0}}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -644,7 +605,7 @@ class TestOTelParserStatusExtraction:
         """Test status extraction from string status."""
         data = {
             "traceId": "trace",
-            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": "error"}]
+            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": "error"}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -654,12 +615,14 @@ class TestOTelParserStatusExtraction:
         """Test status extraction from error message in status object."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 100,
-                "status": {"message": "An error occurred"}
-            }]
+            "spans": [
+                {
+                    "spanId": "s1",
+                    "name": "op",
+                    "duration": 100,
+                    "status": {"message": "An error occurred"},
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -669,12 +632,14 @@ class TestOTelParserStatusExtraction:
         """Test status extraction from error tag."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 100,
-                "tags": [{"key": "error", "value": True}]
-            }]
+            "spans": [
+                {
+                    "spanId": "s1",
+                    "name": "op",
+                    "duration": 100,
+                    "tags": [{"key": "error", "value": True}],
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -682,10 +647,7 @@ class TestOTelParserStatusExtraction:
 
     def test_status_default_ok(self) -> None:
         """Test default status is OK when not specified."""
-        data = {
-            "traceId": "trace",
-            "spans": [{"spanId": "s1", "name": "op", "duration": 100}]
-        }
+        data = {"traceId": "trace", "spans": [{"spanId": "s1", "name": "op", "duration": 100}]}
         parser = OTelParser()
         trace = parser.parse_otlp(data)
         assert trace.spans[0].status == "OK"
@@ -700,8 +662,8 @@ class TestOTelParserSpanTree:
             "traceId": "trace",
             "spans": [
                 {"spanId": "parent", "parentSpanId": None, "name": "parent-op", "duration": 1000},
-                {"spanId": "child", "parentSpanId": "parent", "name": "child-op", "duration": 500}
-            ]
+                {"spanId": "child", "parentSpanId": "parent", "name": "child-op", "duration": 500},
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -717,8 +679,8 @@ class TestOTelParserSpanTree:
             "spans": [
                 {"spanId": "root", "parentSpanId": None, "name": "root", "duration": 1000},
                 {"spanId": "level1", "parentSpanId": "root", "name": "level1", "duration": 500},
-                {"spanId": "level2", "parentSpanId": "level1", "name": "level2", "duration": 250}
-            ]
+                {"spanId": "level2", "parentSpanId": "level1", "name": "level2", "duration": 250},
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -739,8 +701,8 @@ class TestOTelParserSpanTree:
                 {"spanId": "parent", "parentSpanId": None, "name": "parent", "duration": 1000},
                 {"spanId": "child1", "parentSpanId": "parent", "name": "child1", "duration": 300},
                 {"spanId": "child2", "parentSpanId": "parent", "name": "child2", "duration": 400},
-                {"spanId": "child3", "parentSpanId": "parent", "name": "child3", "duration": 300}
-            ]
+                {"spanId": "child3", "parentSpanId": "parent", "name": "child3", "duration": 300},
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -754,7 +716,7 @@ class TestOTelParserSpanTree:
             "traceId": "trace",
             "spans": [
                 {"spanId": "orphan", "parentSpanId": "missing", "name": "orphan", "duration": 100}
-            ]
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -777,21 +739,23 @@ class TestOTelParserAdditionalFormats:
     def test_dict_attribute_with_nested_stringvalue(self) -> None:
         """Test parsing dict-style attributes with nested stringValue."""
         data = {
-            "resourceSpans": [{
-                "resource": {
-                    "attributes": {
-                        "service.name": {"stringValue": "nested-service"}
-                    }
-                },
-                "scopeSpans": [{
-                    "spans": [{
-                        "traceId": "trace456",
-                        "spanId": "span1",
-                        "name": "op",
-                        "duration": 100
-                    }]
-                }]
-            }]
+            "resourceSpans": [
+                {
+                    "resource": {"attributes": {"service.name": {"stringValue": "nested-service"}}},
+                    "scopeSpans": [
+                        {
+                            "spans": [
+                                {
+                                    "traceId": "trace456",
+                                    "spanId": "span1",
+                                    "name": "op",
+                                    "duration": 100,
+                                }
+                            ]
+                        }
+                    ],
+                }
+            ]
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -800,21 +764,25 @@ class TestOTelParserAdditionalFormats:
     def test_dict_attribute_with_string_value_key(self) -> None:
         """Test parsing dict-style attributes with string_value key."""
         data = {
-            "resourceSpans": [{
-                "resource": {
-                    "attributes": {
-                        "service.name": {"string_value": "string-value-service"}
-                    }
-                },
-                "scopeSpans": [{
-                    "spans": [{
-                        "traceId": "trace789",
-                        "spanId": "span1",
-                        "name": "op",
-                        "duration": 100
-                    }]
-                }]
-            }]
+            "resourceSpans": [
+                {
+                    "resource": {
+                        "attributes": {"service.name": {"string_value": "string-value-service"}}
+                    },
+                    "scopeSpans": [
+                        {
+                            "spans": [
+                                {
+                                    "traceId": "trace789",
+                                    "spanId": "span1",
+                                    "name": "op",
+                                    "duration": 100,
+                                }
+                            ]
+                        }
+                    ],
+                }
+            ]
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -824,12 +792,9 @@ class TestOTelParserAdditionalFormats:
         """Test status extraction from statusCode string field."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 100,
-                "status": {"statusCode": "ERROR"}
-            }]
+            "spans": [
+                {"spanId": "s1", "name": "op", "duration": 100, "status": {"statusCode": "ERROR"}}
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -839,12 +804,7 @@ class TestOTelParserAdditionalFormats:
         """Test status extraction from statusCode integer field."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 100,
-                "status": {"statusCode": 2}
-            }]
+            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"statusCode": 2}}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -858,12 +818,14 @@ class TestOTelParserTimestampFormats:
         """Test duration calculation from microsecond timestamps."""
         data = {
             "traceId": "trace-us",
-            "spans": [{
-                "spanId": "span1",
-                "name": "op",
-                "startTime": 1704067200000000,
-                "endTime": 1704067200100000
-            }]
+            "spans": [
+                {
+                    "spanId": "span1",
+                    "name": "op",
+                    "startTime": 1704067200000000,
+                    "endTime": 1704067200100000,
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -873,12 +835,14 @@ class TestOTelParserTimestampFormats:
         """Test duration calculation from millisecond timestamps."""
         data = {
             "traceId": "trace-ms",
-            "spans": [{
-                "spanId": "span1",
-                "name": "op",
-                "startTime": 1704067200000,
-                "endTime": 1704067200100
-            }]
+            "spans": [
+                {
+                    "spanId": "span1",
+                    "name": "op",
+                    "startTime": 1704067200000,
+                    "endTime": 1704067200100,
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -888,12 +852,14 @@ class TestOTelParserTimestampFormats:
         """Test duration calculation from small nanosecond timestamps."""
         data = {
             "traceId": "trace-small",
-            "spans": [{
-                "spanId": "span1",
-                "name": "op",
-                "startTimeUnixNano": 1000000000,
-                "endTimeUnixNano": 1100000000
-            }]
+            "spans": [
+                {
+                    "spanId": "span1",
+                    "name": "op",
+                    "startTimeUnixNano": 1000000000,
+                    "endTimeUnixNano": 1100000000,
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -904,12 +870,14 @@ class TestOTelParserTimestampFormats:
         """Test duration using startTime key (not UnixNano)."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "span1",
-                "name": "op",
-                "start_time_unix_nano": 1704067200000000000,
-                "end_time_unix_nano": 1704067200050000000
-            }]
+            "spans": [
+                {
+                    "spanId": "span1",
+                    "name": "op",
+                    "start_time_unix_nano": 1704067200000000000,
+                    "end_time_unix_nano": 1704067200050000000,
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -949,8 +917,8 @@ class TestOTelParserEdgeCases:
             "traceId": "trace",
             "spans": [
                 {"spanId": "root", "parentSpanId": None, "name": "root", "duration": 1000},
-                {"spanId": "child", "parentSpanId": "root", "name": "child", "duration": 500}
-            ]
+                {"spanId": "child", "parentSpanId": "root", "name": "child", "duration": 500},
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -963,8 +931,8 @@ class TestOTelParserEdgeCases:
             "traceId": "trace",
             "spans": [
                 {"spanId": "s1", "parentSpanId": "missing", "name": "op1", "duration": 500},
-                {"spanId": "s2", "parentSpanId": "missing", "name": "op2", "duration": 800}
-            ]
+                {"spanId": "s2", "parentSpanId": "missing", "name": "op2", "duration": 800},
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -973,10 +941,7 @@ class TestOTelParserEdgeCases:
 
     def test_service_name_unknown_default(self) -> None:
         """Test service name defaults to 'unknown'."""
-        data = {
-            "traceId": "trace",
-            "spans": [{"spanId": "s1", "name": "op", "duration": 100}]
-        }
+        data = {"traceId": "trace", "spans": [{"spanId": "s1", "name": "op", "duration": 100}]}
         parser = OTelParser()
         trace = parser.parse_otlp(data)
 
@@ -984,10 +949,7 @@ class TestOTelParserEdgeCases:
 
     def test_operation_name_unknown_default(self) -> None:
         """Test operation name defaults to 'unknown'."""
-        data = {
-            "traceId": "trace",
-            "spans": [{"spanId": "s1", "duration": 100}]
-        }
+        data = {"traceId": "trace", "spans": [{"spanId": "s1", "duration": 100}]}
         parser = OTelParser()
         trace = parser.parse_otlp(data)
 
@@ -997,15 +959,13 @@ class TestOTelParserEdgeCases:
         """Test that parser can parse multiple traces."""
         parser = OTelParser()
 
-        trace1 = parser.parse_otlp({
-            "traceId": "trace1",
-            "spans": [{"spanId": "s1", "name": "op1", "duration": 100}]
-        })
+        trace1 = parser.parse_otlp(
+            {"traceId": "trace1", "spans": [{"spanId": "s1", "name": "op1", "duration": 100}]}
+        )
 
-        trace2 = parser.parse_otlp({
-            "traceId": "trace2",
-            "spans": [{"spanId": "s2", "name": "op2", "duration": 200}]
-        })
+        trace2 = parser.parse_otlp(
+            {"traceId": "trace2", "spans": [{"spanId": "s2", "name": "op2", "duration": 200}]}
+        )
 
         assert trace1.traceId == "trace1"
         assert trace2.traceId == "trace2"
@@ -1016,12 +976,7 @@ class TestOTelParserEdgeCases:
         """Test status extraction from empty string status."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 100,
-                "status": ""
-            }]
+            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": ""}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -1031,12 +986,14 @@ class TestOTelParserEdgeCases:
         """Test that error tag with false value doesn't mark as ERROR."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 100,
-                "tags": [{"key": "error", "value": False}]
-            }]
+            "spans": [
+                {
+                    "spanId": "s1",
+                    "name": "op",
+                    "duration": 100,
+                    "tags": [{"key": "error", "value": False}],
+                }
+            ],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -1044,12 +1001,7 @@ class TestOTelParserEdgeCases:
 
     def test_resource_spans_empty_scope_spans(self) -> None:
         """Test parsing with empty scopeSpans array."""
-        data = {
-            "resourceSpans": [{
-                "resource": {},
-                "scopeSpans": []
-            }]
-        }
+        data = {"resourceSpans": [{"resource": {}, "scopeSpans": []}]}
         parser = OTelParser()
         with pytest.raises(ValueError, match="Could not determine trace ID"):
             parser.parse_otlp(data)
@@ -1057,12 +1009,7 @@ class TestOTelParserEdgeCases:
     def test_extract_trace_id_with_traceid_uppercase(self) -> None:
         """Test extracting trace ID with traceID key from spans."""
         data = {
-            "spans": [{
-                "spanId": "s1",
-                "traceID": "upper-trace-id",
-                "name": "op",
-                "duration": 100
-            }]
+            "spans": [{"spanId": "s1", "traceID": "upper-trace-id", "name": "op", "duration": 100}]
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -1071,18 +1018,20 @@ class TestOTelParserEdgeCases:
     def test_jaeger_processid_lowercase(self) -> None:
         """Test Jaeger format with processId (lowercase i)."""
         data = {
-            "data": [{
-                "traceID": "trace-jaeger",
-                "processes": {
-                    "p1": {"serviceName": "service-from-process"}
-                },
-                "spans": [{
-                    "spanID": "span1",
-                    "processId": "p1",
-                    "operationName": "op",
-                    "duration": 100
-                }]
-            }]
+            "data": [
+                {
+                    "traceID": "trace-jaeger",
+                    "processes": {"p1": {"serviceName": "service-from-process"}},
+                    "spans": [
+                        {
+                            "spanID": "span1",
+                            "processId": "p1",
+                            "operationName": "op",
+                            "duration": 100,
+                        }
+                    ],
+                }
+            ]
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -1091,21 +1040,27 @@ class TestOTelParserEdgeCases:
     def test_resource_attribute_list_with_string_value(self) -> None:
         """Test resource attribute list format with string_value key."""
         data = {
-            "resourceSpans": [{
-                "resource": {
-                    "attributes": [
-                        {"key": "service.name", "value": {"string_value": "attr-list-service"}}
-                    ]
-                },
-                "scopeSpans": [{
-                    "spans": [{
-                        "traceId": "trace123",
-                        "spanId": "span1",
-                        "name": "op",
-                        "duration": 100
-                    }]
-                }]
-            }]
+            "resourceSpans": [
+                {
+                    "resource": {
+                        "attributes": [
+                            {"key": "service.name", "value": {"string_value": "attr-list-service"}}
+                        ]
+                    },
+                    "scopeSpans": [
+                        {
+                            "spans": [
+                                {
+                                    "traceId": "trace123",
+                                    "spanId": "span1",
+                                    "name": "op",
+                                    "duration": 100,
+                                }
+                            ]
+                        }
+                    ],
+                }
+            ]
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -1115,12 +1070,7 @@ class TestOTelParserEdgeCases:
         """Test unknown status code defaults to UNSET."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": 100,
-                "status": {"code": 99}
-            }]
+            "spans": [{"spanId": "s1", "name": "op", "duration": 100, "status": {"code": 99}}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)
@@ -1130,11 +1080,7 @@ class TestOTelParserEdgeCases:
         """Test that non-numeric string duration returns zero."""
         data = {
             "traceId": "trace",
-            "spans": [{
-                "spanId": "s1",
-                "name": "op",
-                "duration": "invalid"
-            }]
+            "spans": [{"spanId": "s1", "name": "op", "duration": "invalid"}],
         }
         parser = OTelParser()
         trace = parser.parse_otlp(data)

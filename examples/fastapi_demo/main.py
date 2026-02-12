@@ -156,7 +156,6 @@ async def lifespan(app: FastAPI):
     )
 
     # Setup tracing (must be done before app starts accepting requests)
-    setup_tracing(app)
 
     logger.info("Application startup complete - ready to accept requests")
 

@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 # Add project root to path for imports
 import sys
+
 PROJECT_ROOT = Path(__file__).parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -24,18 +25,15 @@ try:
     from opentelemetry.sdk.trace.export import SpanExportResult
     from opentelemetry.trace import SpanContext, TraceFlags, StatusCode, Status
     from opentelemetry.sdk.resources import Resource
+
     OTEL_AVAILABLE = True
 except ImportError:
     OTEL_AVAILABLE = False
 
 from tracemaid.exporters import TracemaidExporter
 
-
 # Skip all tests if OpenTelemetry is not available
-pytestmark = pytest.mark.skipif(
-    not OTEL_AVAILABLE,
-    reason="OpenTelemetry SDK not installed"
-)
+pytestmark = pytest.mark.skipif(not OTEL_AVAILABLE, reason="OpenTelemetry SDK not installed")
 
 
 class MockSpanContext:
@@ -161,8 +159,8 @@ class TestTracemaidExporterExport:
         # Use spans with parent_span_id so they're not treated as root spans
         # (root spans trigger immediate processing)
         spans = [
-            MockReadableSpan("span1", trace_id, 0x1234567890123456, parent_span_id=0xabcdef),
-            MockReadableSpan("span2", trace_id, 0x1234567890123457, parent_span_id=0xabcdef),
+            MockReadableSpan("span1", trace_id, 0x1234567890123456, parent_span_id=0xABCDEF),
+            MockReadableSpan("span2", trace_id, 0x1234567890123457, parent_span_id=0xABCDEF),
         ]
 
         result = exporter.export(spans)
@@ -182,8 +180,8 @@ class TestTracemaidExporterExport:
         # Use spans with parent_span_id so they're not treated as root spans
         # (root spans trigger immediate processing)
         spans = [
-            MockReadableSpan("span1", trace_id_1, 0x1111111111111111, parent_span_id=0xabcdef),
-            MockReadableSpan("span2", trace_id_2, 0x2222222222222222, parent_span_id=0xfedcba),
+            MockReadableSpan("span1", trace_id_1, 0x1111111111111111, parent_span_id=0xABCDEF),
+            MockReadableSpan("span2", trace_id_2, 0x2222222222222222, parent_span_id=0xFEDCBA),
         ]
 
         result = exporter.export(spans)
@@ -196,7 +194,7 @@ class TestTracemaidExporterExport:
         exporter = TracemaidExporter(console_output=False, flush_interval_seconds=100.0)
 
         trace_id = 0x12345678901234567890123456789012
-        root_span_id = 0xabcdef0123456789
+        root_span_id = 0xABCDEF0123456789
 
         # First, export some child spans (with parent)
         child_spans = [
@@ -213,7 +211,7 @@ class TestTracemaidExporterExport:
         # Now export the root span (no parent)
         root_span = [MockReadableSpan("root", trace_id, root_span_id, parent_span_id=None)]
 
-        with patch.object(exporter, '_process_trace') as mock_process:
+        with patch.object(exporter, "_process_trace") as mock_process:
             exporter.export(root_span)
             # Root span should trigger immediate processing
             mock_process.assert_called_once_with(trace_id_hex)
@@ -248,7 +246,7 @@ class TestTracemaidExporterSpanConversion:
             name="child_operation",
             trace_id=0x12345678901234567890123456789012,
             span_id=0x1234567890123456,
-            parent_span_id=0xabcdef0123456789,
+            parent_span_id=0xABCDEF0123456789,
         )
 
         span_dict = exporter._readable_span_to_dict(span)
@@ -333,13 +331,13 @@ class TestTracemaidExporterForceFlush:
         trace_id = 0x12345678901234567890123456789012
         # Use span with parent_span_id so it's not treated as a root span
         # (root spans trigger immediate processing)
-        spans = [MockReadableSpan("span1", trace_id, 0x1234567890123456, parent_span_id=0xabcdef)]
+        spans = [MockReadableSpan("span1", trace_id, 0x1234567890123456, parent_span_id=0xABCDEF)]
 
         exporter.export(spans)
         assert len(exporter._trace_spans) > 0
 
         # Track if _process_trace is called
-        with patch.object(exporter, '_process_trace') as mock_process:
+        with patch.object(exporter, "_process_trace") as mock_process:
             exporter.force_flush()
             # force_flush should call _process_trace for each trace
             mock_process.assert_called()
@@ -352,7 +350,7 @@ class TestTracemaidExporterShutdown:
         """Test shutdown calls force_flush."""
         exporter = TracemaidExporter(console_output=False)
 
-        with patch.object(exporter, 'force_flush', return_value=True) as mock_flush:
+        with patch.object(exporter, "force_flush", return_value=True) as mock_flush:
             exporter.shutdown()
             mock_flush.assert_called_once()
 
@@ -362,23 +360,18 @@ class TestTracemaidExporterCallback:
 
     def test_callback_not_called_when_not_set(self) -> None:
         """Test no error when callback is not set."""
-        exporter = TracemaidExporter(
-            console_output=False,
-            on_diagram_generated=None
-        )
+        exporter = TracemaidExporter(console_output=False, on_diagram_generated=None)
 
         # Should not raise
         exporter._output_diagram("trace123", "mermaid code", 5, 3)
 
     def test_callback_error_is_caught(self) -> None:
         """Test callback errors are caught and logged."""
+
         def failing_callback(trace_id, diagram):
             raise RuntimeError("Callback failed")
 
-        exporter = TracemaidExporter(
-            console_output=False,
-            on_diagram_generated=failing_callback
-        )
+        exporter = TracemaidExporter(console_output=False, on_diagram_generated=failing_callback)
 
         # Should not raise
         exporter._output_diagram("trace123", "mermaid code", 5, 3)
@@ -390,10 +383,7 @@ class TestTracemaidExporterFileOutput:
     def test_file_output_creates_file(self) -> None:
         """Test that file output creates a file."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            exporter = TracemaidExporter(
-                output_dir=tmpdir,
-                console_output=False
-            )
+            exporter = TracemaidExporter(output_dir=tmpdir, console_output=False)
 
             exporter._output_diagram("abc12345", "graph TD\n  A --> B", 10, 5)
 
@@ -404,10 +394,7 @@ class TestTracemaidExporterFileOutput:
     def test_file_output_contains_diagram(self) -> None:
         """Test that file output contains the diagram."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            exporter = TracemaidExporter(
-                output_dir=tmpdir,
-                console_output=False
-            )
+            exporter = TracemaidExporter(output_dir=tmpdir, console_output=False)
 
             diagram = "graph TD\n  A --> B"
             exporter._output_diagram("abc12345", diagram, 10, 5)
@@ -420,10 +407,7 @@ class TestTracemaidExporterFileOutput:
     def test_file_output_contains_metadata(self) -> None:
         """Test that file output contains metadata comments."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            exporter = TracemaidExporter(
-                output_dir=tmpdir,
-                console_output=False
-            )
+            exporter = TracemaidExporter(output_dir=tmpdir, console_output=False)
 
             exporter._output_diagram("abc12345", "graph TD\n  A --> B", 10, 5)
 

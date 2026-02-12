@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import List
 
 import pytest
 
@@ -174,7 +173,7 @@ class TestUserDataclass:
             username="testuser",
             email="test@example.com",
             is_active=False,
-            created_at=1000.0
+            created_at=1000.0,
         )
 
         assert user.is_active is False

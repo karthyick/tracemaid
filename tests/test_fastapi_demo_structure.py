@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pytest
 
-
 # Base path to the tracemaid project root
 PROJECT_ROOT = Path(__file__).parent.parent
 FASTAPI_DEMO_DIR = PROJECT_ROOT / "examples" / "fastapi_demo"
@@ -26,12 +25,8 @@ class TestDirectoryStructure:
 
     def test_fastapi_demo_directory_exists(self) -> None:
         """Verify fastapi_demo directory exists under examples."""
-        assert FASTAPI_DEMO_DIR.exists(), (
-            f"fastapi_demo directory not found at {FASTAPI_DEMO_DIR}"
-        )
-        assert FASTAPI_DEMO_DIR.is_dir(), (
-            f"{FASTAPI_DEMO_DIR} exists but is not a directory"
-        )
+        assert FASTAPI_DEMO_DIR.exists(), f"fastapi_demo directory not found at {FASTAPI_DEMO_DIR}"
+        assert FASTAPI_DEMO_DIR.is_dir(), f"{FASTAPI_DEMO_DIR} exists but is not a directory"
 
     def test_routes_subdirectory_exists(self) -> None:
         """Verify routes subdirectory exists under fastapi_demo."""
@@ -52,9 +47,7 @@ class TestInitFiles:
     def test_fastapi_demo_init_exists(self) -> None:
         """Verify __init__.py exists in fastapi_demo directory."""
         init_file = FASTAPI_DEMO_DIR / "__init__.py"
-        assert init_file.exists(), (
-            f"__init__.py not found at {init_file}"
-        )
+        assert init_file.exists(), f"__init__.py not found at {init_file}"
         assert init_file.is_file(), f"{init_file} exists but is not a file"
 
     def test_fastapi_demo_init_has_content(self) -> None:
@@ -62,12 +55,8 @@ class TestInitFiles:
         init_file = FASTAPI_DEMO_DIR / "__init__.py"
         content = init_file.read_text()
         assert len(content) > 0, "__init__.py should not be empty"
-        assert '"""' in content or "'''" in content, (
-            "__init__.py should contain a docstring"
-        )
-        assert "__version__" in content, (
-            "__init__.py should define __version__"
-        )
+        assert '"""' in content or "'''" in content, "__init__.py should contain a docstring"
+        assert "__version__" in content, "__init__.py should define __version__"
 
     def test_routes_init_exists(self) -> None:
         """Verify __init__.py exists in routes directory."""
@@ -80,9 +69,7 @@ class TestInitFiles:
         init_file = FASTAPI_DEMO_DIR / "routes" / "__init__.py"
         content = init_file.read_text()
         assert len(content) > 0, "routes/__init__.py should not be empty"
-        assert '"""' in content or "'''" in content, (
-            "routes/__init__.py should contain a docstring"
-        )
+        assert '"""' in content or "'''" in content, "routes/__init__.py should contain a docstring"
 
     def test_services_init_exists(self) -> None:
         """Verify __init__.py exists in services directory."""
@@ -95,9 +82,9 @@ class TestInitFiles:
         init_file = FASTAPI_DEMO_DIR / "services" / "__init__.py"
         content = init_file.read_text()
         assert len(content) > 0, "services/__init__.py should not be empty"
-        assert '"""' in content or "'''" in content, (
-            "services/__init__.py should contain a docstring"
-        )
+        assert (
+            '"""' in content or "'''" in content
+        ), "services/__init__.py should contain a docstring"
 
 
 class TestRequirementsTxt:
@@ -113,33 +100,25 @@ class TestRequirementsTxt:
         """Verify requirements.txt contains fastapi package."""
         req_file = FASTAPI_DEMO_DIR / "requirements.txt"
         content = req_file.read_text().lower()
-        assert "fastapi" in content, (
-            "requirements.txt must contain fastapi package"
-        )
+        assert "fastapi" in content, "requirements.txt must contain fastapi package"
 
     def test_requirements_contains_uvicorn(self) -> None:
         """Verify requirements.txt contains uvicorn package."""
         req_file = FASTAPI_DEMO_DIR / "requirements.txt"
         content = req_file.read_text().lower()
-        assert "uvicorn" in content, (
-            "requirements.txt must contain uvicorn package"
-        )
+        assert "uvicorn" in content, "requirements.txt must contain uvicorn package"
 
     def test_requirements_contains_httpx(self) -> None:
         """Verify requirements.txt contains httpx package."""
         req_file = FASTAPI_DEMO_DIR / "requirements.txt"
         content = req_file.read_text().lower()
-        assert "httpx" in content, (
-            "requirements.txt must contain httpx package"
-        )
+        assert "httpx" in content, "requirements.txt must contain httpx package"
 
     def test_requirements_contains_pytest(self) -> None:
         """Verify requirements.txt contains pytest package."""
         req_file = FASTAPI_DEMO_DIR / "requirements.txt"
         content = req_file.read_text().lower()
-        assert "pytest" in content, (
-            "requirements.txt must contain pytest package"
-        )
+        assert "pytest" in content, "requirements.txt must contain pytest package"
 
     def test_requirements_has_version_specifiers(self) -> None:
         """Verify requirements.txt has version specifiers for packages."""
@@ -148,12 +127,9 @@ class TestRequirementsTxt:
         # Check that at least some packages have version constraints
         lines = [line.strip() for line in content.splitlines() if line.strip()]
         has_versions = any(
-            ">=" in line or "==" in line or "~=" in line or "<" in line
-            for line in lines
+            ">=" in line or "==" in line or "~=" in line or "<" in line for line in lines
         )
-        assert has_versions, (
-            "requirements.txt should specify version constraints for packages"
-        )
+        assert has_versions, "requirements.txt should specify version constraints for packages"
 
 
 class TestPackageImportability:
@@ -162,12 +138,14 @@ class TestPackageImportability:
     def test_fastapi_demo_is_importable(self) -> None:
         """Verify fastapi_demo package can be imported as a module."""
         import sys
+
         # Add examples directory to path temporarily
         examples_path = str(PROJECT_ROOT / "examples")
         if examples_path not in sys.path:
             sys.path.insert(0, examples_path)
         try:
             import fastapi_demo
+
             assert hasattr(fastapi_demo, "__version__")
         finally:
             if examples_path in sys.path:
@@ -220,9 +198,9 @@ class TestDirectoryStructureCompleteness:
                 actual_files.add(str(relative_path).replace("\\", "/"))
 
         for expected in expected_structure:
-            assert expected in actual_files, (
-                f"Expected file {expected} not found in directory structure"
-            )
+            assert (
+                expected in actual_files
+            ), f"Expected file {expected} not found in directory structure"
 
     def test_no_unexpected_files_in_fastapi_demo(self) -> None:
         """Verify no unexpected files exist (except __pycache__)."""
@@ -237,13 +215,9 @@ class TestDirectoryStructureCompleteness:
 
         for item in FASTAPI_DEMO_DIR.iterdir():
             if item.is_file():
-                assert item.name in expected_files, (
-                    f"Unexpected file found: {item.name}"
-                )
+                assert item.name in expected_files, f"Unexpected file found: {item.name}"
             elif item.is_dir():
-                assert item.name in expected_dirs, (
-                    f"Unexpected directory found: {item.name}"
-                )
+                assert item.name in expected_dirs, f"Unexpected directory found: {item.name}"
 
 
 class TestMainApplication:
@@ -259,28 +233,22 @@ class TestMainApplication:
         """Verify main.py defines a FastAPI app."""
         main_file = FASTAPI_DEMO_DIR / "main.py"
         content = main_file.read_text()
-        assert "app = FastAPI" in content or "app: FastAPI" in content, (
-            "main.py should define a FastAPI app"
-        )
+        assert (
+            "app = FastAPI" in content or "app: FastAPI" in content
+        ), "main.py should define a FastAPI app"
 
     def test_main_py_has_middleware(self) -> None:
         """Verify main.py configures middleware."""
         main_file = FASTAPI_DEMO_DIR / "main.py"
         content = main_file.read_text()
-        assert "add_middleware" in content, (
-            "main.py should configure middleware"
-        )
+        assert "add_middleware" in content, "main.py should configure middleware"
 
     def test_main_py_imports_routers(self) -> None:
         """Verify main.py imports routers."""
         main_file = FASTAPI_DEMO_DIR / "main.py"
         content = main_file.read_text()
-        assert "user_router" in content, (
-            "main.py should import user_router"
-        )
-        assert "order_router" in content, (
-            "main.py should import order_router"
-        )
+        assert "user_router" in content, "main.py should import user_router"
+        assert "order_router" in content, "main.py should import order_router"
 
 
 class TestServicesSubpackage:
@@ -303,6 +271,7 @@ class TestServicesSubpackage:
         module and SpanData class have been removed in favor of TracemaidExporter.
         """
         import sys
+
         examples_path = str(PROJECT_ROOT / "examples")
         if examples_path not in sys.path:
             sys.path.insert(0, examples_path)
@@ -315,6 +284,7 @@ class TestServicesSubpackage:
                 OrderItem,
                 OrderStatus,
             )
+
             # Verify classes are importable
             assert UserService is not None
             assert User is not None

@@ -148,6 +148,7 @@ def instrument_requests() -> None:
     """
     try:
         from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
         RequestsInstrumentor().instrument()
         logger.info("Requests library instrumentation enabled")
     except ImportError:
@@ -172,6 +173,7 @@ def instrument_logging() -> None:
     """
     try:
         from opentelemetry.instrumentation.logging import LoggingInstrumentor
+
         LoggingInstrumentor().instrument()
         logger.info("Logging instrumentation enabled")
     except ImportError:
@@ -198,6 +200,7 @@ def instrument_httpx() -> None:
     """
     try:
         from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+
         HTTPXClientInstrumentor().instrument()
         logger.info("HTTPX library instrumentation enabled")
     except ImportError:
@@ -230,6 +233,7 @@ def instrument_sqlalchemy(engine=None) -> None:
     """
     try:
         from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+
         if engine:
             SQLAlchemyInstrumentor().instrument(engine=engine)
         else:
@@ -265,6 +269,7 @@ def instrument_redis(client=None) -> None:
     """
     try:
         from opentelemetry.instrumentation.redis import RedisInstrumentor
+
         if client:
             RedisInstrumentor().instrument(client=client)
         else:
@@ -306,6 +311,7 @@ def instrument_all(
     # Requests
     try:
         from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
         RequestsInstrumentor().instrument()
         results["requests"] = True
         logger.info("Requests instrumentation enabled")
@@ -315,6 +321,7 @@ def instrument_all(
     # HTTPX
     try:
         from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+
         HTTPXClientInstrumentor().instrument()
         results["httpx"] = True
         logger.info("HTTPX instrumentation enabled")
@@ -324,6 +331,7 @@ def instrument_all(
     # SQLAlchemy
     try:
         from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+
         if sqlalchemy_engine:
             SQLAlchemyInstrumentor().instrument(engine=sqlalchemy_engine)
         else:
@@ -336,6 +344,7 @@ def instrument_all(
     # Redis
     try:
         from opentelemetry.instrumentation.redis import RedisInstrumentor
+
         if redis_client:
             RedisInstrumentor().instrument(client=redis_client)
         else:
@@ -348,6 +357,7 @@ def instrument_all(
     # Logging
     try:
         from opentelemetry.instrumentation.logging import LoggingInstrumentor
+
         LoggingInstrumentor().instrument()
         results["logging"] = True
         logger.info("Logging instrumentation enabled")

@@ -33,7 +33,6 @@ from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     SimpleSpanProcessor,
     SpanExporter,
-    ConsoleSpanExporter,
 )
 
 from tracemaid.exporters import TracemaidExporter
@@ -86,9 +85,11 @@ def setup_tracing(
     global _tracer_provider
 
     # Create resource with service name
-    resource = Resource.create({
-        SERVICE_NAME: service_name,
-    })
+    resource = Resource.create(
+        {
+            SERVICE_NAME: service_name,
+        }
+    )
 
     # Create tracer provider
     provider = TracerProvider(resource=resource)
