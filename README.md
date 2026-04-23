@@ -1,10 +1,29 @@
 # tracemaid
 
-OpenTelemetry trace analysis and Mermaid diagram generation library.
+> **See your FastAPI requests as Mermaid diagrams — automatically, per request.**
 
 [![PyPI version](https://badge.fury.io/py/tracemaid.svg)](https://pypi.org/project/tracemaid/)
+[![Downloads](https://static.pepy.tech/badge/tracemaid)](https://pepy.tech/project/tracemaid)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/karthyick/tracemaid?style=social)](https://github.com/karthyick/tracemaid)
+
+Debug distributed traces without opening Jaeger. `tracemaid` turns OpenTelemetry spans into readable Mermaid sequence diagrams — and when traces are too large, it uses **ConvexHull + K-Means clustering** to auto-select the most important spans so diagrams stay readable.
+
+⭐ **[Star on GitHub](https://github.com/karthyick/tracemaid)** if this saves you a debugging session.
+
+---
+
+## The Problem
+
+```
+Before: Open Jaeger → search trace ID → expand 200 spans → eyes glaze over
+After:  Open ./traces/request-abc123.md → read the diagram → see the bug
+```
+
+Every FastAPI request writes its own `.md` file with a Mermaid diagram of what happened — perfect for commit attachments, PR comments, and async debugging.
+
+---
 
 ## Overview
 
@@ -237,6 +256,26 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **PyPI**: https://pypi.org/project/tracemaid/
 - **GitHub**: https://github.com/karthyick/tracemaid
 - **Issues**: https://github.com/karthyick/tracemaid/issues
+
+---
+
+## Ecosystem — other tools by the same author
+
+If `tracemaid` helps you debug, these might help upstream:
+
+| Package | What it does |
+|---------|--------------|
+| [**distill-json**](https://pypi.org/project/distill-json/) | Compress JSON payloads by 60-85% before sending to LLMs — stops trace spans from blowing up context windows |
+| [**semantic-llm-cache**](https://pypi.org/project/semantic-llm-cache/) | Cache LLM responses by semantic similarity — skip the trace entirely for duplicate calls |
+| [**langgraph-crosschain**](https://pypi.org/project/langgraph-crosschain/) | Cross-chain node communication for multi-agent LangGraph systems — traces multi-agent flows cleanly |
+
+---
+
+## ⭐ Star on GitHub
+
+If tracemaid saved you a debugging session, [star the repo](https://github.com/karthyick/tracemaid) — it helps others find it.
+
+Built by [Karthick Raja M](https://github.com/karthyick) · [aichargeworks.com](https://aichargeworks.com)
 
 ## Author
 
