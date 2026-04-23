@@ -271,10 +271,6 @@ If `tracemaid` helps you debug, these might help upstream:
 
 ---
 
-## ⭐ Star on GitHub
-
-If tracemaid saved you a debugging session, [star the repo](https://github.com/karthyick/tracemaid) — it helps others find it.
-
 Built by [Karthick Raja M](https://github.com/karthyick) · [aichargeworks.com](https://aichargeworks.com)
 
 ## Author
